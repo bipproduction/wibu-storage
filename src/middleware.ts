@@ -17,6 +17,7 @@ async function verifyToken(token: string) {
 
 export async function middleware(req: NextRequest) {
   const publicRoutes = [
+    "/",
     "/auth/signin",
     "/auth/signup",
     "/api/signin",
