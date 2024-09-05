@@ -27,6 +27,7 @@ async function signin({
   });
 
   if (!user) {
+    console.log("User not found");
     return new Response(
       JSON.stringify({ success: false, message: "User not found" }),
       { status: 400 }
@@ -37,6 +38,7 @@ async function signin({
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
   if (!isPasswordCorrect) {
+    console.log("Incorrect password");
     return new Response(
       JSON.stringify({ success: false, message: "Incorrect password" }),
       { status: 400 }
@@ -48,10 +50,12 @@ async function signin({
       where: {
         userId: user.id,
         active: true,
+        name: "default",
       },
     });
 
     if (!apikey) {
+      console.log("API key not found");
       return new Response(
         JSON.stringify({ success: false, message: "API key not found" }),
         { status: 400 }
@@ -62,9 +66,19 @@ async function signin({
       token: apikey.api_key,
     });
 
+    if (!token) {
+      console.log("Failed to create session");
+      return new Response(
+        JSON.stringify({ success: false, message: "Failed to create session" }),
+        { status: 500 }
+      );
+    }
+
+    console.log("Login successful");
     return new Response(
       JSON.stringify({ success: true, token, redirect: pages["/user"] })
     );
+
   } catch (error) {
     console.log(error);
     return new Response(JSON.stringify({ success: false, message: error }), {
