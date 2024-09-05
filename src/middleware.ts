@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { libServer } from "./lib/lib_server";
 
 async function verifyToken(token: string) {
-  console.log("===> middleware :", token);
+  // console.log("===> middleware :", token);
   try {
     const user = await libServer.decrypt({ token });
     if (!user) {

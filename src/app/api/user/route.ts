@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { decrypt } from "@/lib/session";
 import "colors";
 
 export async function GET(req: Request) {

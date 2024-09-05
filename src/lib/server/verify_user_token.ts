@@ -1,4 +1,4 @@
-import _ from "lodash";
+// import _ from "lodash";
 import { libServer } from "../lib_server";
 import prisma from "../prisma";
 import { Prisma } from "@prisma/client";
@@ -61,8 +61,7 @@ export async function verifyUserToken(
       });
     }
 
-    const result = _.pick(user, ["id", "name", "email"]);
-    return onUser(result);
+    return onUser(user);
   } catch (error) {
     console.error(error);
     return new Response(JSON.stringify({ error: "Invalid token" }), {

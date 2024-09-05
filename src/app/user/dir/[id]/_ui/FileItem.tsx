@@ -105,7 +105,7 @@ export function FileItem({
                                     overflowY: "hidden",
                                     borderRadius: 8
                                 }}>
-                                {listExtImage.includes(file.ext!) ? <Image src={apis["/api/files/[id]"]({ id: file.id })} w={"100%"} /> : <FaFile size={46} />}
+                                {listExtImage.includes(file.ext!) ? <Image src={apis["/api/files/[id]"]({ id: file.id })} w={"100%"} alt="" /> : <FaFile size={46} />}
                             </Box>
                             <Box bg={selectedId === file.id ? "blue" : "transparent"} style={{
                                 borderRadius: "4px",

@@ -3,7 +3,7 @@
 import { libClient } from "@/lib/lib_client";
 import { apis, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ActionIcon, Box, Button, Flex, Menu, Stack } from "@mantine/core";
+import { ActionIcon, Box, Button, Flex, Group, Loader, Menu, Stack } from "@mantine/core";
 import { useShallowEffect } from "@mantine/hooks";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
@@ -24,6 +24,7 @@ export default function Page({ params }: { params: { id: string } }) {
     const [dirVal, setDirVal] = useState<Dir>()
     const router = useRouter()
     const width = 100;
+    const [loading, setLoading] = useState(false);
 
     const loadDir = async () => {
         const res = await fetch(apis["/api/dir/[id]/list"]({ id: parentId as string }), {
@@ -85,85 +86,92 @@ export default function Page({ params }: { params: { id: string } }) {
     }
 
     const onDropCapture = async (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    
-        // Jika data berupa file
-        if (e.dataTransfer.files.length > 0) {
-            libClient.fileUpload(e.dataTransfer.files[0], parentId, () => {
-                loadDir();
-            });
-            return;
-        }
-    
-        // Jika data berupa HTML gambar
-        const imageHtml = e.dataTransfer.getData('text/html');
-        
-        // Gunakan DOMParser untuk mengambil elemen gambar
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(imageHtml, 'text/html');
-        const imgElement = doc.querySelector('img');
-    
-        if (imgElement) {
-            const imageUrl = imgElement.src;
-    
-            // Jika URL berupa base64 data URL
-            if (imageUrl.startsWith('data:image/')) {
-                const base64Data = imageUrl.split(',')[1];
-                const mimeType = imageUrl.split(';')[0].split(':')[1];
-    
-                // Mengkonversi base64 menjadi blob
-                const byteString = atob(base64Data);
-                const arrayBuffer = new Uint8Array(byteString.length);
-                for (let i = 0; i < byteString.length; i++) {
-                    arrayBuffer[i] = byteString.charCodeAt(i);
-                }
-    
-                const blob = new Blob([arrayBuffer], { type: mimeType });
-                const defaultExtension = mimeType.split('/')[1] || 'png';
-                const file = new File([blob], `dropped-image.${defaultExtension}`, { type: mimeType });
-    
-                // Upload file ke server
-                libClient.fileUpload(file, parentId, () => {
+        setLoading(true)
+        try {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Jika data berupa file
+            if (e.dataTransfer.files.length > 0) {
+                libClient.fileUpload(e.dataTransfer.files[0], parentId, () => {
                     loadDir();
                 });
-    
-            } else {
-                // Jika bukan base64, ambil file dari URL
-                const urlSegments = imageUrl.split('/');
-                let fileName = urlSegments[urlSegments.length - 1] || 'dropped-image.png';
-    
-                // Jika nama file tidak mengandung ekstensi, tambahkan ekstensi default .png
-                if (!fileName.includes('.')) {
-                    fileName += '.png';
-                }
-    
-                try {
-                    const response = await fetch(imageUrl);
-                    const blob = await response.blob();
-                    const fileExtension = blob.type.split('/')[1] || 'png';
-                    
-                    // Pastikan file memiliki ekstensi yang sesuai
-                    if (!fileName.includes('.')) {
-                        fileName += `.${fileExtension}`;
+                return;
+            }
+
+            // Jika data berupa HTML gambar
+            const imageHtml = e.dataTransfer.getData('text/html');
+
+            // Gunakan DOMParser untuk mengambil elemen gambar
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(imageHtml, 'text/html');
+            const imgElement = doc.querySelector('img');
+
+            if (imgElement) {
+                const imageUrl = imgElement.src;
+
+                // Jika URL berupa base64 data URL
+                if (imageUrl.startsWith('data:image/')) {
+                    const base64Data = imageUrl.split(',')[1];
+                    const mimeType = imageUrl.split(';')[0].split(':')[1];
+
+                    // Mengkonversi base64 menjadi blob
+                    const byteString = atob(base64Data);
+                    const arrayBuffer = new Uint8Array(byteString.length);
+                    for (let i = 0; i < byteString.length; i++) {
+                        arrayBuffer[i] = byteString.charCodeAt(i);
                     }
-    
-                    const file = new File([blob], fileName, { type: blob.type });
-    
+
+                    const blob = new Blob([arrayBuffer], { type: mimeType });
+                    const defaultExtension = mimeType.split('/')[1] || 'png';
+                    const file = new File([blob], `dropped-image.${defaultExtension}`, { type: mimeType });
+
                     // Upload file ke server
                     libClient.fileUpload(file, parentId, () => {
                         loadDir();
                     });
-                } catch (error) {
-                    console.error('Error processing image:', error);
+
+                } else {
+                    // Jika bukan base64, ambil file dari URL
+                    const urlSegments = imageUrl.split('/');
+                    let fileName = urlSegments[urlSegments.length - 1] || 'dropped-image.png';
+
+                    // Jika nama file tidak mengandung ekstensi, tambahkan ekstensi default .png
+                    if (!fileName.includes('.')) {
+                        fileName += '.png';
+                    }
+
+                    try {
+                        const response = await fetch(imageUrl);
+                        const blob = await response.blob();
+                        const fileExtension = blob.type.split('/')[1] || 'png';
+
+                        // Pastikan file memiliki ekstensi yang sesuai
+                        if (!fileName.includes('.')) {
+                            fileName += `.${fileExtension}`;
+                        }
+
+                        const file = new File([blob], fileName, { type: blob.type });
+
+                        // Upload file ke server
+                        libClient.fileUpload(file, parentId, () => {
+                            loadDir();
+                        });
+                    } catch (error) {
+                        console.error('Error processing image:', error);
+                    }
                 }
             }
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setLoading(false)
         }
     };
-    
-    
-    
-    
+
+
+
+
 
     const onDrop = (e: React.DragEvent) => {
         e.preventDefault();
@@ -179,16 +187,20 @@ export default function Page({ params }: { params: { id: string } }) {
 
     return (
         <Stack p="md">
-
-            <Flex gap={"md"} align={"center"}>
-                <ActionIcon variant="transparent" component={Link} href={pages["/user/dir/[id]"]({ id: "root" })}>
-                    <MdHome />
-                </ActionIcon>
-                <ActionIcon variant="transparent" onClick={() => router.back()}>
-                    <MdArrowBackIos />
-                </ActionIcon>
-                {dirVal?.ParentDir && <Button component={Link} href={pages["/user/dir/[id]"]({ id: dirVal.ParentDir.id })} variant="transparent" size="compact-xs">{dirVal?.ParentDir?.name}<MdArrowForwardIos /></Button>}
-                {dirVal && <Button variant="transparent" size="compact-xs">{dirVal?.name}</Button>}
+            <Flex gap={"md"} align={"center"} justify={"space-between"}>
+                <Group>
+                    <ActionIcon variant="transparent" component={Link} href={pages["/user/dir/[id]"]({ id: "root" })}>
+                        <MdHome />
+                    </ActionIcon>
+                    <ActionIcon variant="transparent" onClick={() => router.back()}>
+                        <MdArrowBackIos />
+                    </ActionIcon>
+                    {dirVal?.ParentDir && <Button component={Link} href={pages["/user/dir/[id]"]({ id: dirVal.ParentDir.id })} variant="transparent" size="compact-xs">{dirVal?.ParentDir?.name}<MdArrowForwardIos /></Button>}
+                    {dirVal && <Button variant="transparent" size="compact-xs">{dirVal?.name}</Button>}
+                </Group>
+                <Group>
+                    {loading && <Loader variant="dot" />}
+                </Group>
             </Flex>
             <Stack onDragOver={e => {
                 e.preventDefault();

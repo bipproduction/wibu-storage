@@ -1,6 +1,5 @@
 'use client'
 import { apis } from "@/lib/routes"
-import { useNotification } from "@/state/use_notification"
 import { Button, Flex, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
 import Link from "next/link"
 import { useState } from "react"
@@ -13,7 +12,7 @@ type DefaultSignupForm = {
 export function SignupForm() {
     const [form, setForm] = useState<DefaultSignupForm | null>(null);
     const [loading, setLoading] = useState(false);
-    const { set: setValue } = useNotification()
+
     async function onSubmit() {
         if (!form || !form.name || !form.email || !form.password) return alert("Please fill all the fields");
 
