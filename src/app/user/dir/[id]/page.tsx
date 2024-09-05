@@ -3,7 +3,7 @@
 import { libClient } from "@/lib/lib_client";
 import { apis, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ActionIcon, Box, Button, Flex, Group, Loader, Menu, Stack } from "@mantine/core";
+import { ActionIcon, Box, Button, Center, Flex, Group, Loader, Menu, Stack } from "@mantine/core";
 import { useShallowEffect } from "@mantine/hooks";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
@@ -153,7 +153,7 @@ export default function Page({ params }: { params: { id: string } }) {
                     const file = new File([blob], fileName, { type: blob.type });
 
                     // Upload file ke server
-                    await libClient.fileUpload(file, parentId, async() => {
+                    await libClient.fileUpload(file, parentId, async () => {
                         await loadDir();
                     });
                 }
@@ -230,6 +230,13 @@ export default function Page({ params }: { params: { id: string } }) {
                             reload={loadDir}
                         />
                     ))}
+                    {loading && <Center
+                        bg={"gray"}
+                        style={{
+                            borderRadius: 8
+                        }} w={width} h={100}>
+                        <Loader size={"xs"} variant={"dots"} />
+                    </Center>}
                 </Flex>
                 <Box pos={"absolute"} top={showRootMenu?.y} left={showRootMenu?.x} >
                     <Menu opened={true} position="left-start" styles={{
