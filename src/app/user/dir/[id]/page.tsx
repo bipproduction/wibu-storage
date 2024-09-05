@@ -141,25 +141,21 @@ export default function Page({ params }: { params: { id: string } }) {
                         fileName += '.png';
                     }
 
-                    try {
-                        const response = await fetch(imageUrl);
-                        const blob = await response.blob();
-                        const fileExtension = blob.type.split('/')[1] || 'png';
+                    const response = await fetch(imageUrl);
+                    const blob = await response.blob();
+                    const fileExtension = blob.type.split('/')[1] || 'png';
 
-                        // Pastikan file memiliki ekstensi yang sesuai
-                        if (!fileName.includes('.')) {
-                            fileName += `.${fileExtension}`;
-                        }
-
-                        const file = new File([blob], fileName, { type: blob.type });
-
-                        // Upload file ke server
-                        libClient.fileUpload(file, parentId, () => {
-                            loadDir();
-                        });
-                    } catch (error) {
-                        console.error('Error processing image:', error);
+                    // Pastikan file memiliki ekstensi yang sesuai
+                    if (!fileName.includes('.')) {
+                        fileName += `.${fileExtension}`;
                     }
+
+                    const file = new File([blob], fileName, { type: blob.type });
+
+                    // Upload file ke server
+                    await libClient.fileUpload(file, parentId, async() => {
+                        await loadDir();
+                    });
                 }
             }
         } catch (error) {
@@ -199,7 +195,7 @@ export default function Page({ params }: { params: { id: string } }) {
                     {dirVal && <Button variant="transparent" size="compact-xs">{dirVal?.name}</Button>}
                 </Group>
                 <Group>
-                    {loading && <Loader variant="dot" />}
+                    {loading && <Loader size={"xs"} variant={"dots"} />}
                 </Group>
             </Flex>
             <Stack onDragOver={e => {
