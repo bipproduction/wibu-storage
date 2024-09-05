@@ -1,5 +1,6 @@
 import { libServer } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
+import { pages } from "@/lib/routes";
 import bcrypt from "bcrypt";
 export async function POST(request: Request) {
   const body = await request.json();
@@ -27,6 +28,7 @@ async function signup({
     },
   });
   if (existingUser) {
+    console.log("User already exists");
     return new Response(
       JSON.stringify({ success: false, message: "User already exists" }),
       { status: 400 }
@@ -53,15 +55,19 @@ async function signup({
     });
 
     if (!api) {
+      console.log("Failed to create API key");
       return new Response(
         JSON.stringify({ success: false, message: "Failed to create API key" }),
         { status: 500 }
       );
     }
 
-    return new Response(JSON.stringify({ success: true, user }), {
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({ success: true, user, redirect: pages["/auth/signin"] }),
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     console.log(error);
     return new Response(JSON.stringify({ success: false, message: error }), {

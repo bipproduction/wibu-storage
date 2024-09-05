@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
 import _ from "lodash";
 import { libServer } from "@/lib/lib_server";
+import { pages } from "@/lib/routes";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -62,7 +63,7 @@ async function signin({
     });
 
     return new Response(
-      JSON.stringify({ success: true, token, redirect: "/user" })
+      JSON.stringify({ success: true, token, redirect: pages["/user"] })
     );
   } catch (error) {
     console.log(error);

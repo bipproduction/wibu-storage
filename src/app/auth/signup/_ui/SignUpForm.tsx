@@ -26,12 +26,13 @@ export function SignupForm() {
             body: JSON.stringify(form)
         });
         setLoading(false);
+        const data = await response.text();
         if (response.status !== 200) {
-
-            return setValue({ type: "error", msg: "Something went wrong" })
+            return alert(data);
         };
         setForm(null);
-        window.location.href = "/auth/signin";
+        const dataJson = JSON.parse(data);
+        window.location.href = dataJson.redirect;
     }
     return <Stack py={"xl"}>
         <Title>SIGNUP</Title>
