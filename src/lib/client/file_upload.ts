@@ -47,13 +47,13 @@ export async function fileUpload(
     });
 
     if (res.ok) {
-      alert("File uploaded successfully");
+      console.log("File uploaded successfully");
     } else {
       const errorText = await res.text();
       alert(`Upload failed: ${errorText}`);
     }
   } catch (error) {
-    alert("Error uploading file");
+    alert(error);
     console.error("Upload error:", error);
   } finally {
     onDone();

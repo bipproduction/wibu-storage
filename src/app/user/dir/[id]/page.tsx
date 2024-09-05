@@ -93,7 +93,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
             // Jika data berupa file
             if (e.dataTransfer.files.length > 0) {
-                libClient.fileUpload(e.dataTransfer.files[0], parentId, () => {
+                await libClient.fileUpload(e.dataTransfer.files[0], parentId, () => {
                     loadDir();
                 });
                 return;
@@ -127,7 +127,7 @@ export default function Page({ params }: { params: { id: string } }) {
                     const file = new File([blob], `dropped-image.${defaultExtension}`, { type: mimeType });
 
                     // Upload file ke server
-                    libClient.fileUpload(file, parentId, () => {
+                    await libClient.fileUpload(file, parentId, () => {
                         loadDir();
                     });
 
@@ -164,10 +164,6 @@ export default function Page({ params }: { params: { id: string } }) {
             setLoading(false)
         }
     };
-
-
-
-
 
     const onDrop = (e: React.DragEvent) => {
         e.preventDefault();
