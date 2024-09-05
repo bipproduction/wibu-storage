@@ -8,7 +8,7 @@ export async function sessionCreate({ token }: { token: string }) {
     value: token,
     options: {
       httpOnly: true,
-      secure: true,
+    //   secure: true,
       sameSite: "lax",
       path: "/",
     },
