@@ -1,0 +1,93 @@
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { decrypt } from "./lib/session";
+
+const publicRoutes = ["/auth/signin", "/auth/signup", "/"];
+const publicApiPatterns = [
+  /^\/api\/signin/,
+  /^\/api\/signup/,
+  /^\/api\/files\/\w+/,
+];
+
+// Check if the route is public
+function isPublicPath(pathname: string): boolean {
+  return (
+    publicRoutes.includes(pathname) ||
+    publicApiPatterns.some((pattern) => pattern.test(pathname))
+  );
+}
+
+// Get API key from headers for API routes
+function getApiKey(req: NextRequest): string | undefined | null {
+  return (
+    req.headers.get("Authorization")?.split(" ")[1] ||
+    req.headers.get("X-Api-Key")
+  );
+}
+
+// Get token from cookies for page routes
+function getCookieToken(): string | undefined {
+  return cookies().get("ws_token")?.value;
+}
+
+// Handle unauthorized responses
+function handleUnauthorized(req: NextRequest) {
+  const isApiRequest = req.nextUrl.pathname.startsWith("/api");
+  const responseContent = JSON.stringify({ error: "middleware: unauthorized" });
+  const responseHeaders = { "Content-Type": "application/json" };
+
+  if (isApiRequest) {
+    return new NextResponse(responseContent, {
+      status: 401,
+      headers: responseHeaders,
+    });
+  } else {
+    return NextResponse.redirect(new URL("/auth/signin", req.nextUrl));
+  }
+}
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  let token: string | undefined;
+
+  // Separate token handling based on route type
+  if (pathname.startsWith("/api")) {
+    token = getApiKey(req) as any;
+  } else {
+    token = getCookieToken();
+  }
+
+  if (!token) {
+    return handleUnauthorized(req);
+  }
+
+  try {
+    const session = await decrypt(token);
+    const user = session?.user ? JSON.parse(session.user as string) : null;
+
+    if (!user) {
+      return handleUnauthorized(req);
+    }
+
+    if (pathname.startsWith("/api")) {
+      return NextResponse.next();
+    }
+
+    if (!pathname.startsWith(`/user`)) {
+      return NextResponse.redirect(new URL(`/user`, req.nextUrl));
+    }
+  } catch (error) {
+    return handleUnauthorized(req);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|.*\\.png$).*)"],
+};

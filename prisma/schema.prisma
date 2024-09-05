@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ApiKey     ApiKey[]
+  ProjectDir Dir[]
+  File       Files[]
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  name      String
+  desc      String?
+  api_key   String    @unique
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  User      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Dir {
+  id        String   @id @default(cuid())
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  File      Files[] // One-to-Many relationship with Files
+  ParentDir Dir?     @relation("Parent", fields: [parentId], references: [id])
+  ChildDir  Dir[]    @relation("Parent") // One-to-Many self-relation
+  parentId  String? // Optional field for the parent directory
+}
+
+model Files {
+  id        String   @id @default(cuid())
+  name      String
+  path      String?
+  mime      String?
+  ext       String?
+  desc      String?
+  size      Int?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  Dir       Dir?     @relation(fields: [dirId], references: [id])
+  dirId     String? // Optional field for the directory where the file is located
+}
