@@ -234,7 +234,7 @@ export default function Page({ params }: { params: { id: string } }) {
                         bg={"gray"}
                         style={{
                             borderRadius: 8
-                        }} w={width} h={100}>
+                        }} w={width} h={66}>
                         <Loader size={"xs"} variant={"dots"} />
                     </Center>}
                 </Flex>
