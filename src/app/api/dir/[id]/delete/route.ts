@@ -11,3 +11,5 @@ export const DELETE = (req: Request, { params }: { params: { id: string } }) =>
 
     return new Response(JSON.stringify(dir));
   });
+
+  
