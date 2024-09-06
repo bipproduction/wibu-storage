@@ -1,3 +1,4 @@
+import { ntf } from "@/state/use_notification";
 import { apis } from "../routes";
 import { Token } from "../token";
 
@@ -13,5 +14,5 @@ export async function dirDelete(dirId: string, onSuccess: () => void) {
   if (res.ok) {
     return onSuccess();
   }
-  alert(await res.text());
+  ntf.set({ type: "error", msg: "failed to delete dir" });
 }

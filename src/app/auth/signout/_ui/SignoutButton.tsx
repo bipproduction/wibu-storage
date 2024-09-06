@@ -1,5 +1,6 @@
 'use client'
 
+import { ntf } from "@/state/use_notification";
 import { Button, Stack } from "@mantine/core"
 import { useState } from "react";
 
@@ -16,7 +17,7 @@ export function SignoutButton() {
         setLoading(false);
         if (!response.ok) {
             const data = await response.json();
-            return alert(data.message);
+            return ntf.set({ type: "error", msg: data.message });
         };
         window.location.href = "/auth/signin";
     }

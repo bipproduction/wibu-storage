@@ -1,5 +1,6 @@
 'use client'
 import { apis } from "@/lib/routes";
+import { ntf } from "@/state/use_notification";
 import { Button, Flex, Stack, Text, TextInput, Title } from "@mantine/core";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,7 +15,7 @@ export function Signin() {
 
     async function onSubmit() {
         try {
-            if (!form || !form.email || !form.password) return alert("Please fill all the fields");
+            if (!form || !form.email || !form.password) return ntf.set({ type: "error", msg: "Please fill all the fields", autoClose: false });
             setLoading(true);
             const response = await fetch(apis["/api/signin"], {
                 method: "POST",
@@ -30,10 +31,10 @@ export function Signin() {
                 setForm(null);
                 return window.location.href = dataJson.redirect;
             };
-            return alert(data);
+            return ntf.set({ type: "error", msg: data });
         } catch (error) {
             console.log(error)
-            return alert("Something went wrong");
+            return ntf.set({ type: "error", msg: "Something went wrong" });
         } finally {
             setLoading(false);
         }

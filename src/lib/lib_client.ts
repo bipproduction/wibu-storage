@@ -4,4 +4,5 @@ import {dirRename} from "./client/dir_rename";
 import {fileDelete} from "./client/file_delete";
 import {fileRename} from "./client/file_rename";
 import {fileUpload} from "./client/file_upload";
-    export const libClient = {dirCreate, dirDelete, dirRename, fileDelete, fileRename, fileUpload};
+import {fileUploadMultiple} from "./client/file_upload_multiple";
+    export const libClient = {dirCreate, dirDelete, dirRename, fileDelete, fileRename, fileUpload, fileUploadMultiple};

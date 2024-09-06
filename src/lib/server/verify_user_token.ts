@@ -9,7 +9,7 @@ type User = {} & Prisma.UserGetPayload<{
 
 export async function verifyUserToken(
   req: Request,
-  onUser: (user: User) => void
+  onUser: (user: User) => Promise<Response>
 ) {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {

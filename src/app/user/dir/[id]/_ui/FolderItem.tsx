@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { MdDelete, MdEdit, MdFolder, MdOpenInNew } from "react-icons/md";
 import { Rename } from "./Rename";
+import { ntf } from "@/state/use_notification";
 export function FolderItem({
     dir, width, reload, selectedId, setSelectedId, contextMenu, setContextMenu, parentId
 }: {
@@ -49,7 +50,10 @@ export function FolderItem({
         libClient.dirDelete(dir.id, () => {
             setContextMenu("");
             reload();
-            alert("deleted");
+            ntf.set({
+                type: "success",
+                msg: "Folder deleted successfully",
+            });
         });
     }
 

@@ -1,4 +1,6 @@
+import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
+import { apis } from "../routes";
 
 export async function fileUpload(
   file: File,
@@ -6,7 +8,7 @@ export async function fileUpload(
   onDone: () => void
 ) {
   if (!file) {
-    return alert("No file selected");
+    return ntf.set({ type: "error", msg: "No file selected" });
   }
 
   const allowedMimeTypes = [
@@ -25,12 +27,20 @@ export async function fileUpload(
   // const file = form[0];
 
   if (!allowedMimeTypes.includes(file.type)) {
-    return alert("Unsupported file type");
+    return ntf.set({
+      type: "error",
+      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
+        ", "
+      )}`,
+    });
   }
 
   if (file.size > 100 * 1024 * 1024) {
     // 100 MB
-    return alert("File size exceeds 100 MB");
+    return ntf.set({
+      type: "error",
+      msg: "File size too large. Max size: 100 MB",
+    });
   }
 
   const formData = new FormData();
@@ -38,7 +48,7 @@ export async function fileUpload(
   formData.append("dirId", dirId);
 
   try {
-    const res = await fetch("/api/upload", {
+    const res = await fetch(apis["/api/upload"], {
       method: "POST",
       body: formData,
       headers: {
@@ -50,10 +60,10 @@ export async function fileUpload(
       console.log("File uploaded successfully");
     } else {
       const errorText = await res.text();
-      alert(`Upload failed: ${errorText}`);
+      ntf.set({ type: "error", msg: errorText });
     }
   } catch (error) {
-    alert(error);
+    ntf.set({ type: "error", msg: "Failed to upload file" });
     console.error("Upload error:", error);
   } finally {
     onDone();

@@ -1,3 +1,4 @@
+import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 
 export async function fileDelete(fileId: string, onSuccess: () => void) {
@@ -11,5 +12,6 @@ export async function fileDelete(fileId: string, onSuccess: () => void) {
   if (res.ok) {
     return onSuccess();
   }
-  alert(await res.text());
+  const text = await res.text();
+  ntf.set({ type: "error", msg: text });
 }

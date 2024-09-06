@@ -1,3 +1,4 @@
+import { ntf } from "@/state/use_notification";
 import { apis } from "../routes";
 import { Token } from "../token";
 
@@ -6,7 +7,7 @@ export async function dirRename(
   dirId: string,
   onSuccess: () => void
 ) {
-  if (newName === "") return alert("name can't be empty");
+  if (newName === "") return ntf.set({ type: "error", msg: "name cannot be empty" });
   const res = await fetch(apis["/api/dir/[id]/rename"]({ id: dirId }), {
     method: "PUT",
     headers: {
@@ -19,5 +20,5 @@ export async function dirRename(
   if (res.ok) {
     return onSuccess();
   }
-  return alert(await res.text());
+  return ntf.set({ type: "error", msg: "failed to rename dir" });
 }

@@ -1,5 +1,6 @@
 'use client'
 import { apis } from "@/lib/routes"
+import { ntf } from "@/state/use_notification"
 import { Button, Flex, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
 import Link from "next/link"
 import { useState } from "react"
@@ -14,7 +15,7 @@ export function SignupForm() {
     const [loading, setLoading] = useState(false);
 
     async function onSubmit() {
-        if (!form || !form.name || !form.email || !form.password) return alert("Please fill all the fields");
+        if (!form || !form.name || !form.email || !form.password) return ntf.set({ type: "error", msg: "Please fill all the fields" });
 
         setLoading(true);
         const response = await fetch(apis["/api/signup"], {
@@ -27,7 +28,7 @@ export function SignupForm() {
         setLoading(false);
         const data = await response.text();
         if (response.status !== 200) {
-            return alert(data);
+            return ntf.set({ type: "error", msg: data });
         };
         setForm(null);
         const dataJson = JSON.parse(data);

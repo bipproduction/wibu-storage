@@ -2,7 +2,7 @@
 
 import { libClient } from "@/lib/lib_client";
 import { apis } from "@/lib/routes";
-import { useNotification } from "@/state/use_notification";
+import { ntf, useNotification } from "@/state/use_notification";
 import { Box, Button, Flex, Image, Menu, Paper, Stack, Text, TextInput } from "@mantine/core";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
@@ -60,7 +60,7 @@ export function FileItem({
         libClient.fileDelete(file.id, () => {
             setContextMenu("");
             reload();
-            alert("deleted");
+            ntf.set({ type: "success", msg: "deleted" });
         });
     };
 

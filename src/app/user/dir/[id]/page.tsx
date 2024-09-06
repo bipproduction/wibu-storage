@@ -12,6 +12,7 @@ import { MdArrowBackIos, MdArrowForwardIos, MdHome } from "react-icons/md";
 import { FileItem } from "./_ui/FileItem";
 import { FolderItem } from "./_ui/FolderItem";
 import { Prisma } from "@prisma/client";
+import { ntf } from "@/state/use_notification";
 
 type Dir = {} & Prisma.DirGetPayload<{ select: { id: true, name: true, parentId: true, ParentDir: { select: { id: true, name: true } } } }>
 export default function Page({ params }: { params: { id: string } }) {
@@ -74,8 +75,6 @@ export default function Page({ params }: { params: { id: string } }) {
         e.stopPropagation();
         if (showRootMenu) setRootMenu(null)
         !showRootMenu && setRootMenu({ x: e.clientX, y: e.clientY - 100 })
-        // todo: munculkan menu pada bagian ini
-
     }
 
 
@@ -86,17 +85,26 @@ export default function Page({ params }: { params: { id: string } }) {
     }
 
     const onDropCapture = async (e: React.DragEvent) => {
+        if (parentId === "root") return ntf.set({ type: "error", msg: "Cannot upload file to root" })
         setLoading(true)
         try {
             e.preventDefault();
             e.stopPropagation();
 
+            const files = e.dataTransfer.files;
             // Jika data berupa file
-            if (e.dataTransfer.files.length > 0) {
-                await libClient.fileUpload(e.dataTransfer.files[0], parentId, () => {
+            if (files.length > 0) {
+                if (files.length === 1) {
+                    await libClient.fileUpload(files[0], parentId, () => {
+                        loadDir();
+                    });
+                    return;
+                }
+
+                await libClient.fileUploadMultiple(files, parentId, () => {
                     loadDir();
                 });
-                return;
+                return
             }
 
             // Jika data berupa HTML gambar

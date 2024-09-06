@@ -20,6 +20,7 @@ export function UserHeader() {
             </Group>
         </Flex>
         <Flex wrap={"wrap"} justify={"end"} px={"xs"}>
+            <Button component={Link} href={pages["/docs"]} variant="transparent" size="compact-xs">Docs</Button>
             <Button component={Link} href={pages["/user/dir/[id]"]({ id: "root" })} variant="transparent" size="compact-xs">Storage</Button>
         </Flex>
     </Stack>
