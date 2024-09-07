@@ -16,6 +16,16 @@ export const POST = (req: Request) =>
       const dirId = form.get("dirId") as string;
       const file = form.get("file") as File;
 
+      if (!dirId) {
+        return new Response(
+          JSON.stringify({
+            sucess: false,
+            error: "dirId is required",
+          }),
+          { status: 400 }
+        );
+      }
+
       if (!file) {
         return new Response("No file", { status: 400 });
       }

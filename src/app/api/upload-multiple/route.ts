@@ -16,6 +16,16 @@ export const POST = (req: Request) =>
       const dirId = form.get("dirId") as string;
       const files = form.getAll("files") as File[];
 
+      if (!dirId) {
+        return new Response(
+          JSON.stringify({
+            sucess: false,
+            error: "dirId is required",
+          }),
+          { status: 400 }
+        );
+      }
+
       if (!files || files.length === 0) {
         return new Response("No files", { status: 400 });
       }
@@ -102,7 +112,6 @@ export const POST = (req: Request) =>
       console.error("Error during file upload:", error);
       return new Response("Internal Server Error", { status: 500 });
     }
-
   });
 
 // Fungsi untuk memeriksa apakah file sudah ada
