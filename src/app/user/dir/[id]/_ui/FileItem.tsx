@@ -82,8 +82,9 @@ export function FileItem({
   };
 
   const onCopy = () => {
+    const host = window.location.origin;
     window.navigator.clipboard.writeText(
-      apis["/api/files/[id]"]({ id: file.id })
+      host + apis["/api/files/[id]"]({ id: file.id })
     );
     setContextMenu("");
     // set({ type: "success", msg: "copied" });
@@ -127,7 +128,7 @@ export function FileItem({
               >
                 {listExtImage.includes(file.ext!) ? (
                   <Image
-                    src={apis["/api/files/[id]"]({ id: file.id })}
+                    src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
                     w={"100%"}
                     alt=""
                   />

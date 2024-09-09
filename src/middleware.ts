@@ -22,6 +22,7 @@ export async function middleware(req: NextRequest) {
     "/auth/signup",
     "/api/signin",
     "/api/signup",
+    "/assets/img/bg.png",
   ];
 
   const publicPatterns = [/^\/api\/files\/\w+/];

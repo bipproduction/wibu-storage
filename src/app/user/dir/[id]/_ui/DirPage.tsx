@@ -15,8 +15,10 @@ import {
   Loader,
   Menu,
   Stack,
+  Text,
   TextInput,
-  Tooltip
+  Tooltip,
+  UnstyledButton
 } from "@mantine/core";
 import { useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
@@ -410,9 +412,9 @@ function UploadButton({
                 <MdUpload />
               </ActionIcon>
             ) : (
-              <Button {...props} variant="transparent">
-                New File
-              </Button>
+              <UnstyledButton px={"xs"}  {...props} variant="transparent">
+               <Text fz={14}> New File</Text>
+              </UnstyledButton>
             )
           }
         </FileButton>
