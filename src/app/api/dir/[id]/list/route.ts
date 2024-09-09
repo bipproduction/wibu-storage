@@ -14,6 +14,9 @@ export const GET = async (
         userId: user!.id,
         parentId: id,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       select: {
         id: true,
         name: true,
@@ -27,6 +30,9 @@ export const GET = async (
       where: {
         dirId: id,
       },
+      orderBy: {
+        createdAt: "desc",
+      }
     });
 
     return new Response(

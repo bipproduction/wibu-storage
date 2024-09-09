@@ -2,20 +2,23 @@ import { TextInput } from "@mantine/core";
 import { useState } from "react";
 import { apis } from "@/lib/routes";
 import { libClient } from "@/lib/lib_client";
+import { useHookstate } from "@hookstate/core";
+import { gState } from "@/lib/gatate";
 
 export function Rename({
-    dirId, name, setIsRename, reload
+    dirId, name, setIsRename
 }: {
     dirId: string;
     name: string;
     setIsRename: (v: boolean) => void;
-    reload: () => void;
+
 }) {
     const [renameForm, setRenameForm] = useState(name);
+    const disrState = useHookstate(gState.dirState);
     const onRename = async () => {
         libClient.dirRename(renameForm, dirId, () => {
-            reload();
             setIsRename(false);
+            disrState.set(gState.random());
         })
     };
 

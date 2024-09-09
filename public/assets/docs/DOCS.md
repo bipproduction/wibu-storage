@@ -171,6 +171,9 @@ export async function fileUploadMultiple(
 }
 ```
 
+### IMAGE SIZE
+example: http://localhost:3000/api/files/cm0unscne000r9a667lgqgcjk-size-300
+
 ### API
 
 POST "/api/upload":
