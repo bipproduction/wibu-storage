@@ -3,8 +3,14 @@ import fs from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 
-
-const listImageMimeType = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/ico", "image/svg+xml"];
+const listImageMimeType = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/ico",
+  "image/svg+xml"
+];
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
@@ -23,17 +29,24 @@ export async function GET(
     return new Response("File not found", { status: 404 });
   }
 
-  // Cek apakah path file valid dan baca file dari sistem
+  // Cek apakah path file valid dan baca file dari system
   const filePath = path.join(process.cwd(), "uploads", fileData.path as string);
 
   try {
     const file = await fs.readFile(filePath);
     const mimeType = fileData.mime || "application/octet-stream"; // Default MIME type
 
-    if(listImageMimeType.includes(fileData.mime as string) && size) {
+    let currentSize = +size;
+    if (currentSize > 2000) {
+      currentSize = 2000;
+    } else if (currentSize < 10) {
+      currentSize = 10;
+    }
+
+    if (listImageMimeType.includes(fileData.mime as string) && size) {
       const image = sharp(file);
       const resized = image.resize({
-        width: parseInt(size),
+        width: currentSize,
         fit: "contain"
       });
 

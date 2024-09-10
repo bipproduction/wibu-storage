@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { libServer } from "./lib/lib_server";
 
 async function verifyToken(token: string) {
-  // console.log("===> middleware :", token);
   try {
     const user = await libServer.decrypt({ token });
     if (!user) {
@@ -28,22 +27,22 @@ export async function middleware(req: NextRequest) {
   const publicPatterns = [/^\/api\/files\/\w+/];
 
   if (publicPatterns.some((pattern) => pattern.test(req.nextUrl.pathname))) {
-    return NextResponse.next();
+    return handleCors(req, NextResponse.next());
   }
 
   if (publicRoutes.includes(req.nextUrl.pathname)) {
     const token = req.cookies.get("ws_token")?.value;
 
     if (!token) {
-      return NextResponse.next();
+      return handleCors(req, NextResponse.next());
     }
 
     const user = await verifyToken(token!);
     if (!user) {
-      return NextResponse.next();
+      return handleCors(req, NextResponse.next());
     }
 
-    return NextResponse.redirect(new URL("/user", req.nextUrl));
+    return handleCors(req, NextResponse.redirect(new URL("/user", req.nextUrl)));
   }
 
   // Handle API routes separately
@@ -51,48 +50,72 @@ export async function middleware(req: NextRequest) {
     try {
       const token = req.headers.get("Authorization")?.split(" ")[1];
       if (!token) {
-        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
+        return handleCors(
+          req,
+          new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
       }
 
       const user = await verifyToken(token);
       if (!user) {
-        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
+        return handleCors(
+          req,
+          new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
       }
 
-      return NextResponse.next();
+      return handleCors(req, NextResponse.next());
     } catch (error) {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return handleCors(
+        req,
+        new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
     }
   }
-
-  //   console.log("==>", req.nextUrl.pathname);
 
   // Default behavior for other routes
   const token = req.cookies.get("ws_token")?.value;
   if (!token) {
-    return NextResponse.redirect(new URL("/auth/signin", req.url));
+    return handleCors(req, NextResponse.redirect(new URL("/auth/signin", req.url)));
   }
 
   const user = await verifyToken(token);
   if (!user) {
-    return NextResponse.redirect(new URL("/auth/signin", req.url));
+    return handleCors(req, NextResponse.redirect(new URL("/auth/signin", req.url)));
   }
 
   if (req.nextUrl.pathname === "/auth/signin" && user) {
-    return NextResponse.redirect(new URL("/user", req.url));
+    return handleCors(req, NextResponse.redirect(new URL("/user", req.url)));
   }
-  // Pass the user object to the page component
-  //   req.nextUrl.searchParams.set("user", JSON.stringify(user));
-  return NextResponse.next();
+
+  return handleCors(req, NextResponse.next());
+}
+
+function handleCors(req: NextRequest, res: NextResponse) {
+  const origin = req.headers.get("origin") || "*";
+  
+  // Set CORS headers
+  res.headers.set("Access-Control-Allow-Origin", origin);
+  res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+    res.headers.set("Access-Control-Max-Age", "86400"); // Cache for 1 day
+    return res;
+  }
+
+  return res;
 }
 
 export const config = {

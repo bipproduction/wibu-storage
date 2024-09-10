@@ -1,28 +1,28 @@
-# Documentation
+# API Documentation
 
-### TAHAPAN
+## Getting Started
 
-1. create user/ login
-2. copy apikey atau buat baru
+### Steps:
+1. **Create User/Login**: Sign in or register a new user.
+2. **Copy API Key**: After logging in, either copy the existing API key or create a new one.
 
-.env
+In your `.env` file, add the following:
+```bash
+WS_APIKEY="your_api_key_here"
+```
 
-`WS_APIKEY="........."`
+---
 
-### example
+## Example Code
 
-SINGLE UPLOAD
+### Single File Upload
 
 ```tsx
 import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apis } from "../routes";
 
-export async function fileUpload(
-  file: File,
-  dirId: string,
-  onDone: () => void
-) {
+export async function fileUpload(file: File, dirId: string, onDone: () => void) {
   if (!file) {
     return ntf.set({ type: "error", msg: "No file selected" });
   }
@@ -40,19 +40,14 @@ export async function fileUpload(
     "text/plain"
   ];
 
-  // const file = form[0];
-
   if (!allowedMimeTypes.includes(file.type)) {
     return ntf.set({
       type: "error",
-      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
-        ", "
-      )}`
+      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`
     });
   }
 
-  if (file.size > 100 * 1024 * 1024) {
-    // 100 MB
+  if (file.size > 100 * 1024 * 1024) { // 100 MB
     return ntf.set({
       type: "error",
       msg: "File size too large. Max size: 100 MB"
@@ -87,18 +82,14 @@ export async function fileUpload(
 }
 ```
 
-MULTIPLE UPLOAD
+### Multiple File Upload
 
 ```ts
 import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apis } from "../routes";
 
-export async function fileUploadMultiple(
-  files: FileList,
-  dirId: string,
-  onDone: () => void
-) {
+export async function fileUploadMultiple(files: FileList, dirId: string, onDone: () => void) {
   if (!files || files.length === 0) {
     return ntf.set({ type: "error", msg: "No files selected" });
   }
@@ -118,16 +109,13 @@ export async function fileUploadMultiple(
 
   const maxFileSize = 100 * 1024 * 1024; // 100 MB
 
-  // Validate each file
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
 
     if (!allowedMimeTypes.includes(file.type)) {
       return ntf.set({
         type: "error",
-        msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
-          ", "
-        )}`
+        msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`
       });
     }
 
@@ -140,8 +128,6 @@ export async function fileUploadMultiple(
   }
 
   const formData = new FormData();
-
-  // Append each file to formData
   for (let i = 0; i < files.length; i++) {
     formData.append("files", files[i]);
   }
@@ -171,51 +157,66 @@ export async function fileUploadMultiple(
 }
 ```
 
-### IMAGE SIZE
+---
 
-example: http://localhost:3000/api/files/cm0unscne000r9a667lgqgcjk-size-300
+## Image Resizing
 
-### API
+Example:  
+To retrieve an image with a specific size:
+```
+http://localhost:3000/api/files/<file-id>-size-300
+```
 
-POST "/api/upload":  
-Require: FormData
+---
 
-- dirId string
-- file File
+## API Endpoints
 
-Note: ERROR => dirId === null
+### Upload Endpoints
 
-POST "/api/upload-multiple":  
-Require: FormData
+- **POST `/api/upload`**  
+  - **Request Parameters**: `FormData`
+    - `dirId`: `string` (required)
+    - `file`: `File` (required)
+  - **Errors**:  
+    - `dirId` is `null`
 
-- dirId string
-- files FileList
+- **POST `/api/upload-multiple`**  
+  - **Request Parameters**: `FormData`
+    - `dirId`: `string` (required)
+    - `files`: `FileList` (required)
+  - **Errors**:  
+    - `dirId` is `null`
 
-Note: ERROR => dirId === null
+### File Endpoints
 
-GET "/api/files/[id]":  
-Example:
+- **GET `/api/files/[id]`**  
+  - **Retrieve Original**:  
+    - `http://localhost:3000/api/files/<file-id>`
+  - **Retrieve Resized**:  
+    - `http://localhost:3000/api/files/<file-id>-size-100`
 
-- original - http://localhost:3000/api/files/fghjklkjhgghjkl
-- resize - http://localhost:3000/api/files/fghjklkjhgghjkl-size-100
+- **PUT `/api/files/[id]/rename`**  
+  - **Request Body**: `JSON`
+    - `name`: `string` (required)
 
-PUT "/api/files/[id]/rename":  
-Require: Json
-- name string
+- **DELETE `/api/files/[id]/delete`**  
+  - **Deletes a file**
 
+### Directory Endpoints
 
-DELETE "/api/files/[id]/delete":
+- **PUT `/api/dir/[id]/rename`**  
+  - **Request Body**: `JSON`
+    - `name`: `string` (required)
 
-PUT "/api/dir/[id]/rename":  
-Require: Json
-- name string
+- **GET `/api/dir/[id]/list`**  
+  - **List all files in a directory**
 
-GET "/api/dir/[id]/list":
+- **GET `/api/dir/[id]/find`**  
+  - **Find a directory by ID**
 
-GET "/api/dir/[id]/find":
+- **DELETE `/api/dir/[id]/delete`**  
+  - **Deletes a directory**
 
-DELETE "/api/dir/[id]/delete":
-
-POST "/api/dir/[id]/create":
-Require: Json
-- name string
+- **POST `/api/dir/[id]/create`**  
+  - **Request Body**: `JSON`
+    - `name`: `string` (required)

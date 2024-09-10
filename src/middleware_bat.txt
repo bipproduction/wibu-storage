@@ -1,0 +1,100 @@
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { libServer } from "./lib/lib_server";
+
+async function verifyToken(token: string) {
+  // console.log("===> middleware :", token);
+  try {
+    const user = await libServer.decrypt({ token });
+    if (!user) {
+      return null;
+    }
+    return user;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function middleware(req: NextRequest) {
+  const publicRoutes = [
+    "/",
+    "/auth/signin",
+    "/auth/signup",
+    "/api/signin",
+    "/api/signup",
+    "/assets/img/bg.png",
+  ];
+
+  const publicPatterns = [/^\/api\/files\/\w+/];
+
+  if (publicPatterns.some((pattern) => pattern.test(req.nextUrl.pathname))) {
+    return NextResponse.next();
+  }
+
+  if (publicRoutes.includes(req.nextUrl.pathname)) {
+    const token = req.cookies.get("ws_token")?.value;
+
+    if (!token) {
+      return NextResponse.next();
+    }
+
+    const user = await verifyToken(token!);
+    if (!user) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(new URL("/user", req.nextUrl));
+  }
+
+  // Handle API routes separately
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    try {
+      const token = req.headers.get("Authorization")?.split(" ")[1];
+      if (!token) {
+        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const user = await verifyToken(token);
+      if (!user) {
+        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return NextResponse.next();
+    } catch (error) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  //   console.log("==>", req.nextUrl.pathname);
+
+  // Default behavior for other routes
+  const token = req.cookies.get("ws_token")?.value;
+  if (!token) {
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  }
+
+  if (req.nextUrl.pathname === "/auth/signin" && user) {
+    return NextResponse.redirect(new URL("/user", req.url));
+  }
+  // Pass the user object to the page component
+  //   req.nextUrl.searchParams.set("user", JSON.stringify(user));
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/((?!_next|static|favicon.ico).*)"], // Ignore Next.js internals and static files
+};

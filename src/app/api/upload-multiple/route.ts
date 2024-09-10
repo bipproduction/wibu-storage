@@ -19,7 +19,7 @@ export const POST = (req: Request) =>
       if (!dirId) {
         return new Response(
           JSON.stringify({
-            sucess: false,
+            success: false,
             error: "dirId is required",
           }),
           { status: 400 }
@@ -103,7 +103,7 @@ export const POST = (req: Request) =>
         // Konversi ArrayBuffer ke Buffer
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        // Tulis file ke sistem
+        // Tulis file ke system
         await fs.writeFile(filePath, buffer);
       }
 
