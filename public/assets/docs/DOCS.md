@@ -199,20 +199,23 @@ Example:
 - original - http://localhost:3000/api/files/fghjklkjhgghjkl
 - resize - http://localhost:3000/api/files/fghjklkjhgghjkl-size-100
 
-PUT "/api/files/[id]/rename":
+PUT "/api/files/[id]/rename":  
+Require: Json
+- name string
+
 
 DELETE "/api/files/[id]/delete":
 
-PUT "/api/dir/[id]/update":
-
-PUT "/api/dir/[id]/rename":
+PUT "/api/dir/[id]/rename":  
+Require: Json
+- name string
 
 GET "/api/dir/[id]/list":
 
 GET "/api/dir/[id]/find":
 
-GET "/api/dir/[id]/file":
-
 DELETE "/api/dir/[id]/delete":
 
 POST "/api/dir/[id]/create":
+Require: Json
+- name string
