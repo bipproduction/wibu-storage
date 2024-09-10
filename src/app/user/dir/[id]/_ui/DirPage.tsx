@@ -31,6 +31,7 @@ import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";
 import { DirId } from "@/lib/static_value";
 import { FaX } from "react-icons/fa6";
+import { TreePage } from "./TreePage";
 
 type Dir = {} & Prisma.DirGetPayload<{
   select: {
@@ -148,7 +149,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
       // Jika data berupa HTML gambar
       const imageHtml = e.dataTransfer.getData("text/html");
 
-      // Gunakan DOMParser untuk mengambil elemen gambar
+      // Gunakan DOMParser untuk mengambil element gambar
       const parser = new DOMParser();
       const doc = parser.parseFromString(imageHtml, "text/html");
       const imgElement = doc.querySelector("img");
@@ -229,90 +230,105 @@ export default function DirPage({ params }: { params: { id: string } }) {
   return (
     <Stack p="md">
       <Navbar dirVal={dirVal} />
-      <Stack
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        onDrop={onDrop}
-        onDropCapture={onDropCapture}
-        onClick={rootClick}
-        pos={"relative"}
-        onContextMenu={onContextMenu}
-        p="md"
-        h={"100vh"}
-        bg={"dark"}
-        style={{
-          border: "0.5px solid gray",
-          borderRadius: "4px",
-          overflowY: "auto"
-        }}
-      >
-        <Flex gap="md" wrap="wrap">
-          {listDir?.map((dir) => (
-            <FolderItem
-              key={dir.id}
-              dir={dir}
-              width={width}
-              selectedId={selectId}
-              setSelectedId={setSelectId}
-              contextMenu={contextMenu}
-              setContextMenu={setContextMenu}
-              parentId={parentId}
-            />
-          ))}
-        </Flex>
-        <Flex wrap={"wrap"} gap={"md"}>
-          {listFile?.map((file, k) => (
-            <FileItem
-              key={k}
-              file={file}
-              width={width}
-              selectedId={selectId}
-              setSelectedId={setSelectId}
-              contextMenu={contextMenu}
-              setContextMenu={setContextMenu}
-              //   reload={loadDir}
-            />
-          ))}
-          {newFileLoadingState.value && (
-            <Center
-              bg={"gray"}
-              style={{
-                borderRadius: 8
-              }}
-              w={width}
-              h={66}
-            >
-              <Loader size={"xs"} variant={"dots"} />
-            </Center>
-          )}
-        </Flex>
-        <Box pos={"absolute"} top={showRootMenu?.y} left={showRootMenu?.x}>
-          <Menu
-            opened={true}
-            position="left-start"
-            styles={{
-              dropdown: {
-                display: showRootMenu ? "block" : "none"
-              }
-            }}
-          >
-            <Menu.Target>
-              <div
-                style={{
-                  width: 0,
-                  height: 0
-                }}
+      <Flex>
+        <Stack
+          w={300}
+          style={{
+            overflow: "auto"
+          }}
+        >
+          <TreePage />
+        </Stack>
+        <Stack
+          flex={1}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={onDrop}
+          onDropCapture={onDropCapture}
+          onClick={rootClick}
+          // pos={"relative"}
+          onContextMenu={onContextMenu}
+          p="md"
+          h={"100vh"}
+          bg={"dark"}
+          style={{
+            border: "0.5px solid gray",
+            borderRadius: "4px",
+            overflowY: "auto"
+          }}
+        >
+          <Flex gap="md" wrap="wrap">
+            {listDir?.map((dir) => (
+              <FolderItem
+                key={dir.id}
+                dir={dir}
+                width={width}
+                selectedId={selectId}
+                setSelectedId={setSelectId}
+                contextMenu={contextMenu}
+                setContextMenu={setContextMenu}
+                parentId={parentId}
               />
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item onClick={onCreateNewFolder}>new folder</Menu.Item>
-              <UploadButton parentId={parentId} variant="button" />
-            </Menu.Dropdown>
-          </Menu>
-        </Box>
-      </Stack>
+            ))}
+          </Flex>
+          <Flex wrap={"wrap"} gap={"md"}>
+            {listFile?.map((file, k) => (
+              <FileItem
+                key={k}
+                file={file}
+                width={width}
+                selectedId={selectId}
+                setSelectedId={setSelectId}
+                contextMenu={contextMenu}
+                setContextMenu={setContextMenu}
+                //   reload={loadDir}
+              />
+            ))}
+            {newFileLoadingState.value && (
+              <Center
+                bg={"gray"}
+                style={{
+                  borderRadius: 8
+                }}
+                w={width}
+                h={66}
+              >
+                <Loader size={"xs"} variant={"dots"} />
+              </Center>
+            )}
+          </Flex>
+          <Box
+            pos={"absolute"}
+            top={(showRootMenu?.y ?? 0) + 100}
+            left={showRootMenu?.x}
+          >
+            <Menu
+              opened={true}
+              position="left-start"
+              styles={{
+                dropdown: {
+                  display: showRootMenu ? "block" : "none"
+                }
+              }}
+            >
+              <Menu.Target>
+                <div
+                  style={{
+                    width: 0,
+                    height: 0
+                  }}
+                />
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={onCreateNewFolder}>new folder</Menu.Item>
+                <UploadButton parentId={parentId} variant="button" />
+              </Menu.Dropdown>
+            </Menu>
+          </Box>
+        </Stack>
+      </Flex>
     </Stack>
   );
 }

@@ -204,6 +204,8 @@ http://localhost:3000/api/files/<file-id>-size-300
 
 ### Directory Endpoints
 
+- default id `root`
+
 - **PUT `/api/dir/[id]/rename`**  
   - **Request Body**: `JSON`
     - `name`: `string` (required)
