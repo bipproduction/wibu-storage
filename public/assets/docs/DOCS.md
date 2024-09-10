@@ -37,7 +37,7 @@ export async function fileUpload(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
+    "text/plain"
   ];
 
   // const file = form[0];
@@ -47,7 +47,7 @@ export async function fileUpload(
       type: "error",
       msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
         ", "
-      )}`,
+      )}`
     });
   }
 
@@ -55,7 +55,7 @@ export async function fileUpload(
     // 100 MB
     return ntf.set({
       type: "error",
-      msg: "File size too large. Max size: 100 MB",
+      msg: "File size too large. Max size: 100 MB"
     });
   }
 
@@ -68,8 +68,8 @@ export async function fileUpload(
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${Token.value}`,
-      },
+        Authorization: `Bearer ${Token.value}`
+      }
     });
 
     if (res.ok) {
@@ -113,7 +113,7 @@ export async function fileUploadMultiple(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
+    "text/plain"
   ];
 
   const maxFileSize = 100 * 1024 * 1024; // 100 MB
@@ -127,14 +127,14 @@ export async function fileUploadMultiple(
         type: "error",
         msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
           ", "
-        )}`,
+        )}`
       });
     }
 
     if (file.size > maxFileSize) {
       return ntf.set({
         type: "error",
-        msg: "File size too large. Max size: 100 MB",
+        msg: "File size too large. Max size: 100 MB"
       });
     }
   }
@@ -152,8 +152,8 @@ export async function fileUploadMultiple(
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${Token.value}`,
-      },
+        Authorization: `Bearer ${Token.value}`
+      }
     });
 
     if (res.ok) {
@@ -172,15 +172,32 @@ export async function fileUploadMultiple(
 ```
 
 ### IMAGE SIZE
+
 example: http://localhost:3000/api/files/cm0unscne000r9a667lgqgcjk-size-300
 
 ### API
 
-POST "/api/upload":
+POST "/api/upload":  
+Require: FormData
 
-POST "/api/upload-multiple":
+- dirId string
+- file File
 
-GET "/api/files/[id]":
+Note: ERROR => dirId === null
+
+POST "/api/upload-multiple":  
+Require: FormData
+
+- dirId string
+- files FileList
+
+Note: ERROR => dirId === null
+
+GET "/api/files/[id]":  
+Example:
+
+- original - http://localhost:3000/api/files/fghjklkjhgghjkl
+- resize - http://localhost:3000/api/files/fghjklkjhgghjkl-size-100
 
 PUT "/api/files/[id]/rename":
 

@@ -29,6 +29,8 @@ import { FileItem } from "./FileItem";
 import { FolderItem } from "./FolderItem";
 import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";
+import { DirId } from "@/lib/static_value";
+import { FaX } from "react-icons/fa6";
 
 type Dir = {} & Prisma.DirGetPayload<{
   select: {
@@ -39,6 +41,7 @@ type Dir = {} & Prisma.DirGetPayload<{
   };
 }>;
 export default function DirPage({ params }: { params: { id: string } }) {
+  DirId.set(params.id);
   const parentId = params.id;
   const [listDir, setlistDir] = useState<any[]>([]);
   const [listFile, setlistFile] = useState<any[]>([]);
@@ -412,8 +415,8 @@ function UploadButton({
                 <MdUpload />
               </ActionIcon>
             ) : (
-              <UnstyledButton px={"xs"}  {...props} variant="transparent">
-               <Text fz={14}> New File</Text>
+              <UnstyledButton px={"xs"} {...props} variant="transparent">
+                <Text fz={14}> New File</Text>
               </UnstyledButton>
             )
           }
@@ -426,13 +429,50 @@ function UploadButton({
 function DirSearch() {
   const [value, setValue] = useState("");
 
+  async function onSearch() {
+    setValue(value);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const res = await fetch(
+      apis["/api/dir/[id]/search/[q]"]({
+        id: DirId.value,
+        q: value || "empty-search"
+      }),
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${Token.value}`
+        }
+      }
+    );
+    const data = await res.text();
+
+    console.log(data);
+  }
+
+  useShallowEffect(() => {
+    if (value) onSearch();
+  }, [value]);
   return (
-    <TextInput
-      placeholder="Search"
-      value={value}
-      onChange={(e) => setValue(e.currentTarget.value)}
-      size="xs"
-      leftSection={<MdSearch />}
-    />
+    <Stack gap={0}>
+      {/* {DirId.value} */}
+      <TextInput
+        rightSection={
+          value.length > 0 && (
+            <ActionIcon
+              onClick={() => setValue("")}
+              variant="transparent"
+              size={"xs"}
+            >
+              <FaX />
+            </ActionIcon>
+          )
+        }
+        value={value}
+        placeholder="Search"
+        onChange={(e) => setValue(e.target.value)}
+        size="xs"
+        leftSection={<MdSearch />}
+      />
+    </Stack>
   );
 }

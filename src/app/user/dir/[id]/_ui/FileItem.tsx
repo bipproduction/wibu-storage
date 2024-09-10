@@ -2,7 +2,17 @@
 import { libClient } from "@/lib/lib_client";
 import { apis } from "@/lib/routes";
 import { ntf } from "@/state/use_notification";
-import { Box, Image, Menu, Paper, Stack, Text, TextInput } from "@mantine/core";
+import {
+  Box,
+  Center,
+  Image,
+  Loader,
+  Menu,
+  Paper,
+  Stack,
+  Text,
+  TextInput
+} from "@mantine/core";
 import { Prisma } from "@prisma/client";
 import { useState } from "react";
 import { FaFile } from "react-icons/fa";
@@ -55,7 +65,7 @@ export function FileItem({
   }
 
   function onDoubleClick(id: string) {
-    window.location.href = apis["/api/files/[id]"]({ id });
+    window.open(apis["/api/files/[id]"]({ id }), "_blank");
   }
 
   function onContextMenu(e: React.MouseEvent) {
@@ -127,11 +137,12 @@ export function FileItem({
                 }}
               >
                 {listExtImage.includes(file.ext!) ? (
-                  <Image
-                    src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
-                    w={"100%"}
-                    alt=""
-                  />
+                  // <Image
+                  //   src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
+                  //   w={"100%"}
+                  //   alt=""
+                  // />
+                  <DisplayImage file={file} />
                 ) : (
                   <FaFile size={46} />
                 )}
@@ -192,5 +203,32 @@ export function FileItem({
         </Menu.Dropdown>
       </Menu>
     </Stack>
+  );
+}
+
+function DisplayImage({ file }: { file: Record<string, any> }) {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <Box pos={"relative"} style={{ width: "100%", height: "100%" }}>
+      <Image
+        onLoad={() => setLoading(false)}
+        onError={() => setLoading(false)}
+        src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
+        w={"100%"}
+        alt=""
+      />
+      <Center
+        display={loading ? "flex" : "none"}
+        pos={"absolute"}
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        bg={"dark"}
+      >
+        <Loader size={"xs"} variant={"dots"} />
+      </Center>
+    </Box>
   );
 }

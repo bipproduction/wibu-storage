@@ -72,6 +72,7 @@ export const GET = async (
         totalDirs,
         totalFiles,
         currentPage: pageNumber,
+        limit: limitNumber,
         totalPagesDirs: Math.ceil(totalDirs / limitNumber),
         totalPagesFiles: Math.ceil(totalFiles / limitNumber),
       },
