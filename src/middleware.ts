@@ -100,19 +100,24 @@ export async function middleware(req: NextRequest) {
   return handleCors(req, NextResponse.next());
 }
 
+// Function to handle CORS headers
 function handleCors(req: NextRequest, res: NextResponse) {
-  const origin = req.headers.get("origin") || "*";
-  
   // Set CORS headers
-  res.headers.set("Access-Control-Allow-Origin", origin);
+  res.headers.set("Access-Control-Allow-Origin", "*"); // You can restrict this to specific origins if needed
   res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // Handle preflight requests
+  // Handle preflight requests (OPTIONS)
   if (req.method === "OPTIONS") {
-    res.headers.set("Access-Control-Allow-Credentials", "true");
-    res.headers.set("Access-Control-Max-Age", "86400"); // Cache for 1 day
-    return res;
+    return new NextResponse(null, {
+      status: 204, // No Content
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400", // Cache the preflight response for 1 day
+      },
+    });
   }
 
   return res;
