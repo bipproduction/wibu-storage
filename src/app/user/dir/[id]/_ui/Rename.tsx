@@ -14,11 +14,13 @@ export function Rename({
 
 }) {
     const [renameForm, setRenameForm] = useState(name);
-    const disrState = useHookstate(gState.dirState);
+    // const disrState = useHookstate(gState.dirState);
+    const {set: reloadDir} = useHookstate(gState.reloadDirState);
     const onRename = async () => {
         libClient.dirRename(renameForm, dirId, () => {
             setIsRename(false);
-            disrState.set(gState.random());
+            // disrState.set(gState.random());
+            reloadDir(Math.random());
         })
     };
 

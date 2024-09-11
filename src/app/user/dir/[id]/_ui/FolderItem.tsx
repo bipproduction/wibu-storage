@@ -30,7 +30,8 @@ export function FolderItem({
   parentId: string;
 }) {
   const [isRename, setIsRename] = useState(false);
-  const dirState = useHookstate(gState.dirState);
+  // const dirState = useHookstate(gState.dirState);
+  const { set: reloadDir } = useHookstate(gState.reloadDirState);
 
   const onClick = () => {
     setSelectedId(dir.id);
@@ -52,15 +53,16 @@ export function FolderItem({
     // todo : create folder
     libClient.dirCreate(parentId, "new folder", () => {
       setContextMenu("");
-      dirState.set(gState.random());
-
+      // dirState.set(gState.random());
+      reloadDir(Math.random());
     });
   };
 
   const onDelete = async () => {
     libClient.dirDelete(dir.id, () => {
       setContextMenu("");
-      dirState.set(gState.random());
+      // dirState.set(gState.random());
+      reloadDir(Math.random());
       ntf.set({
         type: "success",
         msg: "Folder deleted successfully"
