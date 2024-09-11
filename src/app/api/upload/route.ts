@@ -19,8 +19,8 @@ export const POST = (req: Request) =>
       if (!dirId) {
         return new Response(
           JSON.stringify({
-            sucess: false,
-            error: "dirId is required",
+            success: false,
+            error: "dirId is required"
           }),
           { status: 400 }
         );
@@ -41,7 +41,7 @@ export const POST = (req: Request) =>
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "text/plain",
+        "text/plain"
       ];
 
       // Validasi MIME type
@@ -79,7 +79,7 @@ export const POST = (req: Request) =>
       }
 
       // Buat entri file di database
-      await prisma.files.create({
+      const uploadFile = await prisma.files.create({
         data: {
           userId: user.id,
           dirId: dirId,
@@ -88,8 +88,8 @@ export const POST = (req: Request) =>
           size: file.size,
           name: fileName,
           path: `${user.id}/${createdAt.replace(/-/g, "/")}/${fileName}`,
-          createdAt: new Date(),
-        },
+          createdAt: new Date()
+        }
       });
 
       // Buat direktori jika belum ada
@@ -98,10 +98,15 @@ export const POST = (req: Request) =>
       // Konversi ArrayBuffer ke Buffer
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      // Tulis file ke sistem
+      // Tulis file ke system
       await fs.writeFile(filePath, buffer);
 
-      return new Response(filePath, { status: 201 });
+      return new Response(
+        JSON.stringify({
+          data: uploadFile
+        }),
+        { status: 201 }
+      );
     } catch (error) {
       console.error("Error during file upload:", error);
       return new Response("Internal Server Error", { status: 500 });

@@ -20,7 +20,7 @@ export const POST = (req: Request) =>
         return new Response(
           JSON.stringify({
             success: false,
-            error: "dirId is required",
+            error: "dirId is required"
           }),
           { status: 400 }
         );
@@ -41,21 +41,22 @@ export const POST = (req: Request) =>
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "text/plain",
+        "text/plain"
       ];
 
+      const listDataUpload: any[] = [];
       for (const file of files) {
         // Validasi MIME type
         if (!allowedMimeTypes.includes(file.type)) {
           return new Response(`Unsupported file type: ${file.name}`, {
-            status: 400,
+            status: 400
           });
         }
 
         // Validasi ukuran file
         if (file.size > MAX_FILE_SIZE) {
           return new Response(`File is too large: ${file.name}`, {
-            status: 400,
+            status: 400
           });
         }
 
@@ -84,7 +85,7 @@ export const POST = (req: Request) =>
         }
 
         // Buat entri file di database
-        await prisma.files.create({
+        const uploadFile = await prisma.files.create({
           data: {
             userId: user.id,
             dirId: dirId,
@@ -93,8 +94,8 @@ export const POST = (req: Request) =>
             size: file.size,
             name: fileName,
             path: `${user.id}/${createdAt.replace(/-/g, "/")}/${fileName}`,
-            createdAt: new Date(),
-          },
+            createdAt: new Date()
+          }
         });
 
         // Buat direktori jika belum ada
@@ -105,9 +106,16 @@ export const POST = (req: Request) =>
 
         // Tulis file ke system
         await fs.writeFile(filePath, buffer);
+
+        listDataUpload.push(uploadFile);
       }
 
-      return new Response("Files uploaded successfully", { status: 201 });
+      return new Response(
+        JSON.stringify({
+          data: listDataUpload
+        }),
+        { status: 201 }
+      );
     } catch (error) {
       console.error("Error during file upload:", error);
       return new Response("Internal Server Error", { status: 500 });

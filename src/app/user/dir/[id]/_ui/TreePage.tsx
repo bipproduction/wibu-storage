@@ -1,5 +1,6 @@
 "use client";
 
+import { gState } from "@/lib/gatate";
 import { apis, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
@@ -16,6 +17,10 @@ type Dir = Prisma.DirGetPayload<{
 type Dirs = Dir & { children: Dirs[] };
 
 export function TreePage() {
+  const reloadDir = gState.useDirLoader(() => {
+    console.log("reloadDir Tree");
+    loadTree();
+  });
   const [listDir, setListDir] = useLocalStorage<Dirs[]>({
     key: "listDir",
     defaultValue: []

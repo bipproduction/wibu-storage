@@ -12,6 +12,7 @@ import {
   FileButton,
   Flex,
   Group,
+  Image,
   Loader,
   Menu,
   Stack,
@@ -52,6 +53,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
     null
   );
   const [dirVal, setDirVal] = useState<Dir>();
+  const reloadDir = gState.useDirLoader(() => loadDir());
   const width = 100;
   // const [loading, setLoading] = useState(false);
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
@@ -87,7 +89,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
     }
 
     const resDir = await fetch(
-      apis["/api/dir/[id]/find"]({ id: parentId as string }),
+      apis["/api/dir/[id]/find/dir"]({ id: parentId as string }),
       {
         method: "GET",
         headers: {
@@ -99,8 +101,8 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
     if (resDir.ok) {
       try {
-        const json = (await resDir.json()) as Dir;
-        setDirVal(json);
+        const json = await resDir.json();
+        setDirVal(json.data);
       } catch (error) {
         console.log(error);
       }
@@ -329,9 +331,45 @@ export default function DirPage({ params }: { params: { id: string } }) {
           </Box>
         </Stack>
       </Flex>
+      {/* <Test parentUd={parentId} /> */}
     </Stack>
   );
 }
+
+// function Test({ parentUd }: { parentUd: string }) {
+//   async function loadFile() {
+//     const res = await fetch(
+//       apis["/api/dir/[id]/find/file/[name]"]({
+//         id: parentUd,
+//         name: "download-1.jpg"
+//       }),
+//       {
+//         headers: {
+//           Authorization: `Bearer ${Token.value}`
+//         }
+//       }
+//     );
+
+//     const dataText = await res.text();
+
+//     console.log(dataText);
+//   }
+
+//   useShallowEffect(() => {
+//     // loadFile();
+//   }, []);
+//   return (
+//     <Stack>
+//       <Image
+//         src={apis["/api/files/view/[dirId]/[name]"]({
+//           dirId: parentUd,
+//           name: "download-1.jpg"
+//         })}
+//         alt=""
+//       />
+//     </Stack>
+//   );
+// }
 
 // navbar
 function Navbar({ dirVal }: { dirVal: Dir | undefined }) {
