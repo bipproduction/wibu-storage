@@ -151,6 +151,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
         return;
       }
 
+      
       // Jika data berupa HTML gambar
       const imageHtml = e.dataTransfer.getData("text/html");
 
