@@ -11,21 +11,19 @@ const dirState = hookstate("");
 const newFileLoadingState = hookstate(false);
 const dirLoaderState = hookstate(0);
 
-const reloadWrappper = (state: State<number>, callBack: () => void) => {
-  const s = useHookstate(state);
-
+const useReloadWrappper = (state: State<number>, callBack: () => void) => {
   useShallowEffect(() => {
     callBack();
-  }, [s.value]);
+  }, [state.value]);
 
   const reload = () => {
-    s.set(Math.random());
+    state.set(Math.random());
   };
   return reload;
 };
 
 const useDirLoader = (callback: () => void) =>
-  reloadWrappper(dirLoaderState, callback);
+  useReloadWrappper(useHookstate(dirLoaderState), callback);
 
 // Export global state
 export const gState = {

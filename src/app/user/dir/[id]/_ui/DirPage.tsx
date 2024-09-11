@@ -331,45 +331,9 @@ export default function DirPage({ params }: { params: { id: string } }) {
           </Box>
         </Stack>
       </Flex>
-      {/* <Test parentUd={parentId} /> */}
     </Stack>
   );
 }
-
-// function Test({ parentUd }: { parentUd: string }) {
-//   async function loadFile() {
-//     const res = await fetch(
-//       apis["/api/dir/[id]/find/file/[name]"]({
-//         id: parentUd,
-//         name: "download-1.jpg"
-//       }),
-//       {
-//         headers: {
-//           Authorization: `Bearer ${Token.value}`
-//         }
-//       }
-//     );
-
-//     const dataText = await res.text();
-
-//     console.log(dataText);
-//   }
-
-//   useShallowEffect(() => {
-//     // loadFile();
-//   }, []);
-//   return (
-//     <Stack>
-//       <Image
-//         src={apis["/api/files/view/[dirId]/[name]"]({
-//           dirId: parentUd,
-//           name: "download-1.jpg"
-//         })}
-//         alt=""
-//       />
-//     </Stack>
-//   );
-// }
 
 // navbar
 function Navbar({ dirVal }: { dirVal: Dir | undefined }) {
