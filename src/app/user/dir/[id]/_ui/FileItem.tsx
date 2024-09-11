@@ -47,16 +47,6 @@ export function FileItem({
 }) {
   const [isRename, setIsRename] = useState(false);
   const [renameValue, setRenameValue] = useState<string>(file.name);
-  // const [reload] = useReload([
-  //   {
-  //     id: "dir"
-  //   },
-  //   {
-  //     id: "rename file",
-  //     callback: (val) => setIsRename(val)
-  //   }
-  // ]);
-  // const { set } = useNotification();
 
   function onClick(id: string) {
     setSelectedId(id);
@@ -137,11 +127,7 @@ export function FileItem({
                 }}
               >
                 {listExtImage.includes(file.ext!) ? (
-                  // <Image
-                  //   src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
-                  //   w={"100%"}
-                  //   alt=""
-                  // />
+                  
                   <DisplayImage file={file} />
                 ) : (
                   <FaFile size={46} />

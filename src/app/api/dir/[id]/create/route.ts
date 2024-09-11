@@ -46,7 +46,7 @@ export const POST = (req: Request, { params }: { params: { id: string } }) =>
 
     console.log(create);
 
-    return new Response(JSON.stringify({ ...create }), {
+    return new Response(JSON.stringify({ data: create }), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });

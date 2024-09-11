@@ -31,18 +31,7 @@ export const POST = (req: Request) =>
       }
 
       // Daftar MIME types yang diizinkan
-      const allowedMimeTypes = [
-        "image/png",
-        "image/jpeg",
-        "image/gif",
-        "text/csv",
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "text/plain"
-      ];
+      const allowedMimeTypes = libServer.listMimeTypes;
 
       const listDataUpload: any[] = [];
       for (const file of files) {
@@ -60,52 +49,54 @@ export const POST = (req: Request) =>
           });
         }
 
-        const createdAt = moment().format("YYYY-MM-DD-HH-mm");
-        const ext = path.extname(file.name);
-        const baseFileName = _.kebabCase(path.basename(file.name, ext));
-        let fileName = baseFileName + ext;
-        let filePath = path.join(
-          root,
-          user.id,
-          createdAt.replace(/-/g, "/"),
-          fileName
-        );
+        // const createdAt = moment().format("YYYY-MM-DD-HH-mm");
+        // const ext = path.extname(file.name);
+        // const baseFileName = _.kebabCase(path.basename(file.name, ext));
+        // let fileName = baseFileName + ext;
+        // let filePath = path.join(
+        //   root,
+        //   user.id,
+        //   createdAt.replace(/-/g, "/"),
+        //   fileName
+        // );
 
-        // Periksa jika nama file sudah ada, tambahkan penanda unik
-        let counter = 1;
-        while (await fileExists(filePath)) {
-          fileName = `${baseFileName}-${counter}${ext}`;
-          filePath = path.join(
-            root,
-            user.id,
-            createdAt.replace(/-/g, "/"),
-            fileName
-          );
-          counter++;
-        }
+        // // Periksa jika nama file sudah ada, tambahkan penanda unik
+        // let counter = 1;
+        // while (await fileExists(filePath)) {
+        //   fileName = `${baseFileName}-${counter}${ext}`;
+        //   filePath = path.join(
+        //     root,
+        //     user.id,
+        //     createdAt.replace(/-/g, "/"),
+        //     fileName
+        //   );
+        //   counter++;
+        // }
+
+        const pathGenerate = await libServer.filePathGenerate(user.id, file.name);
 
         // Buat entri file di database
         const uploadFile = await prisma.files.create({
           data: {
             userId: user.id,
             dirId: dirId,
-            ext: ext,
+            ext: pathGenerate.ext,
             mime: file.type,
             size: file.size,
-            name: fileName,
-            path: `${user.id}/${createdAt.replace(/-/g, "/")}/${fileName}`,
+            name: pathGenerate.name,
+            path: pathGenerate.filePath,
             createdAt: new Date()
           }
         });
 
         // Buat direktori jika belum ada
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.mkdir(path.dirname(pathGenerate.fullPath), { recursive: true });
 
         // Konversi ArrayBuffer ke Buffer
         const buffer = Buffer.from(await file.arrayBuffer());
 
         // Tulis file ke system
-        await fs.writeFile(filePath, buffer);
+        await fs.writeFile(pathGenerate.fullPath, buffer);
 
         listDataUpload.push(uploadFile);
       }
