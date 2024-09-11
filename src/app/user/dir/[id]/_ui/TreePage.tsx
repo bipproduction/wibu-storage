@@ -4,6 +4,7 @@ import { gState } from "@/lib/gatate";
 import { apis, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
+import { useHookstate } from "@hookstate/core";
 import { ActionIcon, Box, Flex, ScrollArea, Stack, Text } from "@mantine/core";
 import { useLocalStorage, useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
@@ -16,11 +17,14 @@ type Dir = Prisma.DirGetPayload<{
 }>;
 type Dirs = Dir & { children: Dirs[] };
 
-export function TreePage() {
-  const reloadDir = gState.useDirLoader(() => {
-    console.log("reloadDir Tree");
-    loadTree();
-  });
+export function TreePage({ dirId }: { dirId: string }) {
+  const { value: triggerReloadDir, set: reloadDir } = useHookstate(
+    gState.reloadDirState
+  );
+  // const reloadDir = gState.useDirLoader(() => {
+  //   console.log("reloadDir from tree");
+  //   loadTree();
+  // });
   const [listDir, setListDir] = useLocalStorage<Dirs[]>({
     key: "listDir",
     defaultValue: []
@@ -50,20 +54,28 @@ export function TreePage() {
 
   useShallowEffect(() => {
     loadTree();
-  }, []);
+  }, [triggerReloadDir]);
 
   return (
     <ScrollArea p={"md"}>
       <Stack p={"md"} gap={0}>
         {listDir.map((item) => (
-          <DirItem key={item.id} dirs={item} depth={0} />
+          <DirItem key={item.id} dirs={item} depth={0} dirId={dirId} />
         ))}
       </Stack>
     </ScrollArea>
   );
 }
 
-function DirItem({ dirs, depth }: { dirs: Dirs; depth: number }) {
+function DirItem({
+  dirs,
+  depth,
+  dirId
+}: {
+  dirs: Dirs;
+  depth: number;
+  dirId: string;
+}) {
   const [isOpen, setIsOpen] = useLocalStorage<boolean>({
     key: dirs.id,
     defaultValue: false
@@ -91,6 +103,7 @@ function DirItem({ dirs, depth }: { dirs: Dirs; depth: number }) {
           )}
         <AiFillFolder size={20} color="orange" />
         <Text
+          bg={dirId === dirs.id ? "gray" : "transparent"}
           flex={1}
           component={Link}
           href={pages["/user/dir/[id]"]({ id: dirs.id })}
@@ -105,7 +118,12 @@ function DirItem({ dirs, depth }: { dirs: Dirs; depth: number }) {
         dirs.children.length > 0 && ( // Conditional rendering of children
           <Stack gap={0}>
             {dirs.children.map((child) => (
-              <DirItem key={child.id} dirs={child} depth={depth + 1} />
+              <DirItem
+                dirId={dirId}
+                key={child.id}
+                dirs={child}
+                depth={depth + 1}
+              />
             ))}
           </Stack>
         )}

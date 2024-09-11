@@ -21,7 +21,7 @@ import {
   Tooltip,
   UnstyledButton
 } from "@mantine/core";
-import { useShallowEffect } from "@mantine/hooks";
+import { useLocalStorage, useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
@@ -45,7 +45,10 @@ type Dir = {} & Prisma.DirGetPayload<{
 export default function DirPage({ params }: { params: { id: string } }) {
   DirId.set(params.id);
   const parentId = params.id;
-  const [listDir, setlistDir] = useState<any[]>([]);
+  const [listDir, setlistDir] = useLocalStorage<Dir[]>({
+    key: "listDir_" + parentId,
+    defaultValue: []
+  });
   const [listFile, setlistFile] = useState<any[]>([]);
   const [selectId, setSelectId] = useState<string>("");
   const [contextMenu, setContextMenu] = useState<string>("");
@@ -53,18 +56,18 @@ export default function DirPage({ params }: { params: { id: string } }) {
     null
   );
   const [dirVal, setDirVal] = useState<Dir>();
-  const reloadDir = gState.useDirLoader(() => loadDir());
+  const { value: triggerReloadDir, set: reloadDir } = useHookstate(
+    gState.reloadDirState
+  );
+  // const reloadDir = gState.useDirLoader(() => loadDir());
   const width = 100;
   // const [loading, setLoading] = useState(false);
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
-  const dirState = useHookstate(gState.dirState);
+  // const dirState = useHookstate(gState.dirState);
 
   useShallowEffect(() => {
     loadDir();
-    if (dirState.value) {
-      loadDir();
-    }
-  }, [dirState.value]);
+  }, [triggerReloadDir]);
 
   const loadDir = async () => {
     const res = await fetch(
@@ -137,13 +140,13 @@ export default function DirPage({ params }: { params: { id: string } }) {
       if (files.length > 0) {
         if (files.length === 1) {
           await libClient.fileUpload(files[0], parentId, () => {
-            loadDir();
+            reloadDir(Math.random());
           });
           return;
         }
 
         await libClient.fileUploadMultiple(files, parentId, () => {
-          loadDir();
+          reloadDir(Math.random());
         });
         return;
       }
@@ -179,7 +182,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
           // Upload file ke server
           await libClient.fileUpload(file, parentId, () => {
-            loadDir();
+            reloadDir(Math.random());
           });
         } else {
           // Jika bukan base64, ambil file dari URL
@@ -205,7 +208,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
           // Upload file ke server
           await libClient.fileUpload(file, parentId, async () => {
-            await loadDir();
+            reloadDir(Math.random());
           });
         }
       }
@@ -225,7 +228,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
   const onCreateNewFolder = () => {
     libClient.dirCreate(parentId, "New Folder", () => {
-      loadDir();
+      reloadDir(Math.random());
     });
   };
 
@@ -239,7 +242,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
             overflow: "auto"
           }}
         >
-          <TreePage />
+          <TreePage dirId={parentId} />
         </Stack>
         <Stack
           flex={1}
@@ -265,7 +268,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
             {listDir?.map((dir) => (
               <FolderItem
                 key={dir.id}
-                dir={dir}
+                dir={dir as any}
                 width={width}
                 selectedId={selectId}
                 setSelectedId={setSelectId}
@@ -380,7 +383,10 @@ function UploadButton({
   parentId: string | null;
   variant?: "icon" | "button";
 }) {
-  const dirState = useHookstate(gState.dirState);
+  // const dirState = useHookstate(gState.dirState);
+  // const reloadDir = gState.useDirLoader(() => {});
+  const { set: reloadDir } = useHookstate(gState.reloadDirState);
+
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
   async function onUpload(files: File[] | null) {
     try {
@@ -395,7 +401,8 @@ function UploadButton({
       if (files.length > 0) {
         if (files.length === 1) {
           await libClient.fileUpload(files[0], parentId!, () => {
-            dirState.set(gState.random());
+            // dirState.set(gState.random());
+            reloadDir(Math.random());
           });
           return;
         }
@@ -410,7 +417,8 @@ function UploadButton({
           dataTransfer.files,
           parentId!,
           () => {
-            dirState.set(gState.random());
+            // dirState.set(gState.random());
+            reloadDir(Math.random());
           }
         );
         return;
@@ -418,7 +426,8 @@ function UploadButton({
     } catch (error) {
       console.log(error);
     } finally {
-      dirState.set(gState.random());
+      // dirState.set(gState.random());
+      reloadDir(Math.random());
       newFileLoadingState.set(false);
     }
   }

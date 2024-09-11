@@ -3,10 +3,12 @@
 ## Getting Started
 
 ### Steps:
+
 1. **Create User/Login**: Sign in or register a new user.
 2. **Copy API Key**: After logging in, either copy the existing API key or create a new one.
 
 In your `.env` file, add the following:
+
 ```bash
 WS_APIKEY="your_api_key_here"
 ```
@@ -22,7 +24,11 @@ import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apis } from "../routes";
 
-export async function fileUpload(file: File, dirId: string, onDone: () => void) {
+export async function fileUpload(
+  file: File,
+  dirId: string,
+  onDone: () => void
+) {
   if (!file) {
     return ntf.set({ type: "error", msg: "No file selected" });
   }
@@ -43,11 +49,14 @@ export async function fileUpload(file: File, dirId: string, onDone: () => void) 
   if (!allowedMimeTypes.includes(file.type)) {
     return ntf.set({
       type: "error",
-      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`
+      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
+        ", "
+      )}`
     });
   }
 
-  if (file.size > 100 * 1024 * 1024) { // 100 MB
+  if (file.size > 100 * 1024 * 1024) {
+    // 100 MB
     return ntf.set({
       type: "error",
       msg: "File size too large. Max size: 100 MB"
@@ -89,7 +98,11 @@ import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apis } from "../routes";
 
-export async function fileUploadMultiple(files: FileList, dirId: string, onDone: () => void) {
+export async function fileUploadMultiple(
+  files: FileList,
+  dirId: string,
+  onDone: () => void
+) {
   if (!files || files.length === 0) {
     return ntf.set({ type: "error", msg: "No files selected" });
   }
@@ -115,7 +128,9 @@ export async function fileUploadMultiple(files: FileList, dirId: string, onDone:
     if (!allowedMimeTypes.includes(file.type)) {
       return ntf.set({
         type: "error",
-        msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`
+        msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
+          ", "
+        )}`
       });
     }
 
@@ -163,6 +178,7 @@ export async function fileUploadMultiple(files: FileList, dirId: string, onDone:
 
 Example:  
 To retrieve an image with a specific size:
+
 ```
 http://localhost:3000/api/files/<file-id>-size-300
 ```
@@ -173,52 +189,64 @@ http://localhost:3000/api/files/<file-id>-size-300
 
 ### Upload Endpoints
 
-- **POST `/api/upload`**  
+- **POST `/api/upload`**
+
   - **Request Parameters**: `FormData`
     - `dirId`: `string` (required)
     - `file`: `File` (required)
-  - **Errors**:  
+  - **Errors**:
     - `dirId` is `null`
 
-- **POST `/api/upload-multiple`**  
+- **POST `/api/upload-multiple`**
   - **Request Parameters**: `FormData`
     - `dirId`: `string` (required)
     - `files`: `FileList` (required)
-  - **Errors**:  
+  - **Errors**:
     - `dirId` is `null`
 
 ### File Endpoints
 
-- **GET `/api/files/[id]`**  
-  - **Retrieve Original**:  
+- **GET `/api/files/[id]`**
+
+  - **Retrieve Original**:
     - `http://localhost:3000/api/files/<file-id>`
-  - **Retrieve Resized**:  
+  - **Retrieve Resized**:
     - `http://localhost:3000/api/files/<file-id>-size-100`
 
-- **PUT `/api/files/[id]/rename`**  
+- **PUT `/api/files/[id]/rename`**
+
   - **Request Body**: `JSON`
     - `name`: `string` (required)
 
-- **DELETE `/api/files/[id]/delete`**  
+- **DELETE `/api/files/[id]/delete`**
+
   - **Deletes a file**
+
+- **GET `/api/files/view/[dirId][name]`**
+
+  - **Get File By directory id and Name**
 
 ### Directory Endpoints
 
 - default id `root`
 
-- **PUT `/api/dir/[id]/rename`**  
+- **PUT `/api/dir/[id]/rename`**
+
   - **Request Body**: `JSON`
     - `name`: `string` (required)
 
-- **GET `/api/dir/[id]/list`**  
+- **GET `/api/dir/[id]/list`**
+
   - **List all files in a directory**
 
-- **GET `/api/dir/[id]/find`**  
+- **GET `/api/dir/[id]/find`**
+
   - **Find a directory by ID**
 
-- **DELETE `/api/dir/[id]/delete`**  
+- **DELETE `/api/dir/[id]/delete`**
+
   - **Deletes a directory**
 
-- **POST `/api/dir/[id]/create`**  
+- **POST `/api/dir/[id]/create`**
   - **Request Body**: `JSON`
     - `name`: `string` (required)
