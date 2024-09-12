@@ -1,30 +1,25 @@
-import { libServer } from "@/lib/lib_server";
-import moment from "moment";
-import path from "path";
+import { apis } from "@/lib/routes";
 
-(async () => {
-console.log(path.basename("/Users/bip/Documents/projects/wibu/wibu-storage/uploads/123/2024/09/11/k5yotgf6ovt/test.pdf"))
-
-})();
-
-function filePathGenerate(userId: string, name: string) {
-  const root = path.join(process.cwd(), "uploads");
-  const createdAt = moment().format("YYYY-MM-DD");
-  const ext = path.extname(name);
-  const baseFileName = path.basename(name, ext);
-  let fileName = baseFileName + ext;
-
-  let filePath = path.join(
-    root,
-    userId,
-    createdAt.replace(/-/g, "/"),
-    Math.random().toString(36).substring(2),
-    fileName
+const token =
+  "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjp7ImlkIjoiY20wd2p1NXMzMDAwMGdtcHBhaXlyYWF0NSIsIm5hbWUiOiJtMiIsImVtYWlsIjoibTIiLCJBcGlLZXkiOlt7ImlkIjoiY20wd2p1NXNpMDAwMmdtcHB4MmxzOHZzbyIsIm5hbWUiOiJkZWZhdWx0In1dfSwiaWF0IjoxNzI1OTc5ODYwLCJleHAiOjQ4ODE3Mzk4NjB9.6UydaHlTN2txojIXrWPUS8Orsc4yK4DdJjzvP3gMBMI";
+const origin = "http://localhost:5000";
+async function test() {
+  const res = await fetch(
+    origin +
+      apis["/api/files/delete/[dirId]/[name]"]({
+        dirId: "cm0wjursk0006gmppiugqjnv8",
+        name: "download.jpg"
+      }),
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    }
   );
 
-  return {
-    path: filePath,
-    name: fileName,
-    ext: ext
-  };
+  const dataText = await res.text();
+  console.log(dataText);
 }
+
+test();
