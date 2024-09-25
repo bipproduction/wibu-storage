@@ -107,19 +107,20 @@ export function FileItem({
       <Menu opened={contextMenu === file.id}>
         <Menu.Target>
           <Paper
+            pos={"relative"}
             w={width}
             key={file.id}
             onContextMenu={onContextMenu}
             onClick={() => onClick(file.id)}
             onDoubleClick={() => onDoubleClick(file.id)}
           >
-            <Stack gap={0} align={"center"} justify={"end"}>
+            <Stack gap={"xs"} align={"center"} justify={"end"}>
               <Box
                 c={"white"}
                 bg={selectedId === file.id ? "gray" : "transparent"}
                 pos={"relative"}
                 // w={56}
-                p={2}
+                p={"xs"}
                 h={66}
                 style={{
                   overflowY: "hidden",
@@ -127,7 +128,6 @@ export function FileItem({
                 }}
               >
                 {listExtImage.includes(file.ext!) ? (
-                  
                   <DisplayImage file={file} />
                 ) : (
                   <FaFile size={46} />
@@ -149,7 +149,17 @@ export function FileItem({
                     autoFocus // Ensure the input gains focus
                   />
                 ) : (
-                  <Text ta={"center"} c={"white"} lineClamp={2} fz={"12"}>
+                  <Text
+                    style={{
+                      wordBreak: "break-word",
+                      lineBreak: "anywhere"
+                    }}
+                    pos={"relative"}
+                    c="white"
+                    lineClamp={2}
+                    ta={"center"}
+                    fz="12"
+                  >
                     {file.name}
                   </Text>
                 )}

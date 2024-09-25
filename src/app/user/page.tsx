@@ -7,8 +7,10 @@ import { ntf } from "@/state/use_notification";
 import {
   ActionIcon,
   Button,
+  Card,
   CopyButton,
   Divider,
+  Flex,
   Group,
   Skeleton,
   Stack,
@@ -42,7 +44,6 @@ export default function Page() {
     console.log(await res.text());
   }
 
- 
   useShallowEffect(() => {
     loadApikey();
   }, []);
@@ -90,43 +91,51 @@ function ApiKeyItem({ data }: { data: Prisma.ApiKeyUncheckedCreateInput }) {
   const [dataItem, setDataItem] = useState(data);
 
   return (
-    <Stack gap={0}>
-      {isRename ? (
-        <ApiKeyRename
-          dataApi={dataItem}
-          setDataItem={setDataItem}
-          setIsRename={setIsRename}
-        />
-      ) : (
-        <Text>{dataItem.name}</Text>
-      )}
-      <Group pos={"relative"} gap={"md"} align={"center"}>
-        <Text
-          flex={1}
-          lineClamp={1}
-          style={{
-            lineBreak: "anywhere",
-            color: "gray"
-          }}
-        >
-          {data.api_key as string}
-        </Text>
-        <ActionIcon
-          variant="transparent"
-          onClick={() => setIsRename(!isRename)}
-        >
-          <FaEdit />
-        </ActionIcon>
-        <CopyButton value={data.api_key as string}>
-          {({ copied, copy }) => (
-            <Button variant={"transparent"} size="compact-xs" onClick={copy}>
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          )}
-        </CopyButton>
-        <ApiKeyItemActivate data={dataItem} />
-      </Group>
-    </Stack>
+    <Card>
+      <Stack gap={0}>
+        {isRename ? (
+          <ApiKeyRename
+            dataApi={dataItem}
+            setDataItem={setDataItem}
+            setIsRename={setIsRename}
+          />
+        ) : (
+          <Text>{dataItem.name}</Text>
+        )}
+        <Stack pos={"relative"} gap={"xs"}>
+          <Text
+            flex={1}
+            lineClamp={1}
+            style={{
+              lineBreak: "anywhere",
+              color: "gray"
+            }}
+          >
+            {data.api_key as string}
+          </Text>
+          <Flex>
+            <ActionIcon
+              variant="transparent"
+              onClick={() => setIsRename(!isRename)}
+            >
+              <FaEdit />
+            </ActionIcon>
+            <CopyButton value={data.api_key as string}>
+              {({ copied, copy }) => (
+                <Button
+                  variant={"transparent"}
+                  size="compact-xs"
+                  onClick={copy}
+                >
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+              )}
+            </CopyButton>
+            <ApiKeyItemActivate data={dataItem} />
+          </Flex>
+        </Stack>
+      </Stack>
+    </Card>
   );
 }
 

@@ -1,7 +1,6 @@
-import { libServer } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
-import path from "path";
 import fs from "fs/promises";
+import path from "path";
 import sharp from "sharp";
 
 const listImageMimeType = [
@@ -40,7 +39,7 @@ export const GET = async (
     const file = await fs.readFile(filePath);
     const mimeType = fileData.mime || "application/octet-stream"; // Default MIME type
 
-    let currentSize = +size;
+    let currentSize = parseInt(size);
     if (currentSize > 2000) {
       currentSize = 2000;
     } else if (currentSize < 10) {

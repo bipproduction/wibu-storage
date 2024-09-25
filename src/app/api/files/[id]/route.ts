@@ -45,15 +45,20 @@ export async function GET(
 
     if (listImageMimeType.includes(fileData.mime as string) && size) {
       const image = sharp(file);
+
+      image.rotate();
       const resized = image.resize({
         width: currentSize,
-        fit: "contain"
+        position: "center",
+        withoutEnlargement: true,
+        fit: "cover"
       });
 
       return new Response(await resized.toBuffer(), {
         headers: {
           "Content-Type": mimeType,
-          "Content-Disposition": `inline; filename="${fileData.name}"`
+          "Content-Disposition": `inline; filename="${fileData.name}"`,
+          "Cache-Control": "public, max-age=3600" // Cache file for 1 hour
         }
       });
     }
@@ -61,7 +66,8 @@ export async function GET(
     return new Response(file, {
       headers: {
         "Content-Type": mimeType,
-        "Content-Disposition": `inline; filename="${fileData.name}"`
+        "Content-Disposition": `inline; filename="${fileData.name}"`,
+        "Cache-Control": "public, max-age=3600" // Cache file for 1 hour
       }
     });
   } catch (error) {

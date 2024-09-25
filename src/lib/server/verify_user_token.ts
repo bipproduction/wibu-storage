@@ -14,14 +14,27 @@ export async function verifyUserToken(
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return new Response(JSON.stringify({ error: "No authorization header" }), {
-      status: 401,
+      status: 401
     });
   }
 
   const token = authHeader.split(" ")[1];
   if (!token) {
     return new Response(JSON.stringify({ error: "No token provided" }), {
-      status: 401,
+      status: 401
+    });
+  }
+
+  const tokenExist = await prisma.apiKey.findFirst({
+    where: {
+      api_key: token,
+      active: true
+    }
+  });
+
+  if (!tokenExist) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 401
     });
   }
 
@@ -29,14 +42,14 @@ export async function verifyUserToken(
     const userToken = await libServer.decrypt({ token });
     if (!userToken) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
+        status: 401
       });
     }
 
     const user = await prisma.user.findUnique({
       where: {
         id: userToken.id,
-        active: true,
+        active: true
       },
       select: {
         id: true,
@@ -45,19 +58,19 @@ export async function verifyUserToken(
         ApiKey: {
           where: {
             api_key: token,
-            active: true,
+            active: true
           },
           select: {
             id: true,
-            name: true,
-          },
-        },
-      },
+            name: true
+          }
+        }
+      }
     });
 
     if (!user || !user.ApiKey.length) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
-        status: 401,
+        status: 401
       });
     }
 
@@ -65,7 +78,7 @@ export async function verifyUserToken(
   } catch (error) {
     console.error(error);
     return new Response(JSON.stringify({ error: "Invalid token" }), {
-      status: 401,
+      status: 401
     });
   }
 }

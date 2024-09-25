@@ -1,6 +1,5 @@
 import { libServer } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
-import { NextRequest } from "next/server";
 
 export const GET = (
   req: Request,

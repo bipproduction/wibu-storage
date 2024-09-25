@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import _ from "lodash";
 
 const root = path.resolve("src/lib");
+
 const extractTextWithinBrackets = (str: string): string => {
   const regex = /\[([^\]]+)\]/g;
   const matches = str.match(regex) || [];
@@ -56,80 +57,6 @@ const generateRoutes = async (fileName: string): Promise<string[]> => {
   return items;
 };
 
-// async function schema() {
-//   const schemaPath = path.join("prisma/schema.prisma");
-//   const schema = await fs.readFile(schemaPath, "utf-8");
-
-//   // Fungsi untuk mengonversi schema ke JSON
-//   const prismaSchemaToJson = (schema: string) => {
-//     const models: Record<string, Record<string, string>> = {};
-//     let currentModel: string | null = null;
-
-//     _(schema)
-//       .split("\n")
-//       .map(_.trim)
-//       .forEach((line) => {
-//         if (_.startsWith(line, "model ")) {
-//           currentModel = _.split(line, " ")[1];
-//           models[currentModel] = {};
-//         } else if (
-//           currentModel &&
-//           line &&
-//           !_.startsWith(line, "//") &&
-//           !_.startsWith(line, "model ") &&
-//           line !== "}"
-//         ) {
-//           const [field, type] = _.split(line, /\s+/);
-//           models[currentModel][field] = type;
-//         } else if (line === "}") {
-//           currentModel = null;
-//         }
-//       });
-
-//     return models;
-//   };
-
-//   // Konversi schema ke JSON
-//   const schemaJson = prismaSchemaToJson(schema);
-
-//   // Buat tipe Table
-//   const tp = `type Table = ${_.keys(schemaJson)
-//     .map((key) => `"${key}"`)
-//     .join(" | ")};`;
-
-//   // Buat tipe dan fungsi form untuk setiap model
-//   const data = _.map(schemaJson, (fields, key) => {
-//     const tipe = `type ${key} = ${_.keys(fields)
-//       .map((field) => `"${field}"`)
-//       .join(" | ")}`;
-//     const form = `export function Form${key}({listItem, onchange}: {listItem: ${key}[], onchange: (val: any) => void }) {
-//       const [form, setForm] = useState<Record<string, string>>({});
-//       useShallowEffect(() => {
-//         form && onchange(form);
-//       }, [form]);
-//       return (
-//         <Stack gap={0}>
-//           {listItem.map((item, k) => (
-//             <Stack key={k}>
-//               <TextInput label={item} placeholder={item} onChange={e => setForm({ ...form, [item]: e.target.value })} />
-//             </Stack>
-//           ))}
-//         </Stack>
-//       );
-//     }`;
-//     return `${tipe}\n${form}`;
-//   });
-
-//   // Hasilkan dan tulis output ke file
-//   const output = `
-//   import { useShallowEffect } from "@mantine/hooks";
-//   import { Stack, TextInput } from "@mantine/core";
-//   import { useState } from "react";
-//   ${data.join("\n")}`;
-
-//   await fs.writeFile(path.join(root, "forms.tsx"), output);
-//   console.log("Forms generated successfully");
-// }
 
 yargs()
   .command("now", "Generate directory structure path", async () => {
@@ -140,14 +67,11 @@ yargs()
 
     const output = `export const pages = {${pages.join(
       ", "
-    )}};\nexport const apis = {${apis.join(", ")}};`;
+    )}};\nexport const apies = {${apis.join(", ")}};`;
     await fs.writeFile(path.join(root, "routes.ts"), output);
     console.log("gen route success");
     await lib();
   })
-  // .command("schema", "Generate schema", async () => {
-  //   await schema();
-  // })
   .command("lib", "Generate lib", async () => {
     await lib();
   })

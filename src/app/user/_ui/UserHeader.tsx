@@ -25,6 +25,7 @@ export function UserHeader() {
         zIndex: 99,
       }}
     >
+
       <Flex justify={"space-between"} p={"xs"}>
         <Text>{User.value.name}</Text>
         <Group>

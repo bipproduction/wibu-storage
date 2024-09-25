@@ -9,6 +9,7 @@ import { Rename } from "./Rename";
 import { ntf } from "@/state/use_notification";
 import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";
+import { useRouter } from "next/navigation";
 
 export function FolderItem({
   dir,
@@ -29,6 +30,7 @@ export function FolderItem({
   setContextMenu: (v: string) => void;
   parentId: string;
 }) {
+  const router = useRouter();
   const [isRename, setIsRename] = useState(false);
   // const dirState = useHookstate(gState.dirState);
   const { set: reloadDir } = useHookstate(gState.reloadDirState);
@@ -46,7 +48,8 @@ export function FolderItem({
   };
 
   const onDoubleClick = () => {
-    window.location.href = pages["/user/dir/[id]"]({ id: dir.id });
+    // window.location.href = pages["/user/dir/[id]"]({ id: dir.id });
+    router.push(pages["/user/dir/[id]"]({ id: dir.id }));
   };
 
   const onCreate = async () => {
@@ -80,7 +83,7 @@ export function FolderItem({
           onClick={onClick}
           onDoubleClick={onDoubleClick}
         >
-          <Stack gap={"0"} align="center" justify="end">
+          <Stack gap={"xs"} align="center" justify="end">
             <Box
               c={"blue"}
               bg={selectedId === dir.id ? "gray" : "transparent"}
@@ -103,7 +106,17 @@ export function FolderItem({
                   setIsRename={setIsRename}
                 />
               ) : (
-                <Text c="white" lineClamp={2} ta={"center"} fz="12">
+                <Text
+                  style={{
+                    wordBreak: "break-word",
+                    lineBreak: "anywhere"
+                  }}
+                  pos={"relative"}
+                  c="white"
+                  lineClamp={2}
+                  ta={"center"}
+                  fz="12"
+                >
                   {dir.name}
                 </Text>
               )}
