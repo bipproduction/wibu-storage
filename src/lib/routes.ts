@@ -6,25 +6,31 @@ export const pages = {
   "/docs": "/docs",
   "/auth/signup": "/auth/signup",
   "/auth/signout": "/auth/signout",
-  "/auth/signin": "/auth/signin"
+  "/auth/signin": "/auth/signin",
+  "/auth/reset-password/[code]": ({ code }: { code: string }) =>
+    `/auth/reset-password/${code}`,
+  "/auth/forgot-password": "/auth/forgot-password",
 };
-export const apis = {
+
+export const apies = {
   "/api/user": "/api/user",
   "/api/upload-multiple": "/api/upload-multiple",
   "/api/upload": "/api/upload",
   "/api/signup": "/api/signup",
   "/api/signout": "/api/signout",
   "/api/signin": "/api/signin",
+  "/api/reset-password": "/api/reset-password",
+  "/api/forgot-password": "/api/forgot-password",
   "/api/files/view/[dirId]/[name]": ({
     dirId,
-    name
+    name,
   }: {
     dirId: string;
     name: string;
   }) => `/api/files/view/${dirId}/${name}`,
   "/api/files/delete/[dirId]/[name]": ({
     dirId,
-    name
+    name,
   }: {
     dirId: string;
     name: string;
@@ -43,7 +49,7 @@ export const apis = {
   "/api/dir/[id]/list": ({ id }: { id: string }) => `/api/dir/${id}/list`,
   "/api/dir/[id]/find/file/[name]": ({
     id,
-    name
+    name,
   }: {
     id: string;
     name: string;
@@ -58,5 +64,5 @@ export const apis = {
   "/api/apikey/[id]/rename": ({ id }: { id: string }) =>
     `/api/apikey/${id}/rename`,
   "/api/apikey/[id]/activate": ({ id }: { id: string }) =>
-    `/api/apikey/${id}/activate`
+    `/api/apikey/${id}/activate`,
 };

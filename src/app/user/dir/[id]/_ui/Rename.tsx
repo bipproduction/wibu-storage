@@ -1,6 +1,6 @@
 import { TextInput } from "@mantine/core";
 import { useState } from "react";
-import { apis } from "@/lib/routes";
+import { apies } from "@/lib/routes";
 import { libClient } from "@/lib/lib_client";
 import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";

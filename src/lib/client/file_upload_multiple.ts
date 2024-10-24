@@ -1,6 +1,6 @@
 import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
-import { apis } from "../routes";
+import { apies } from "../routes";
 
 export async function fileUploadMultiple(
   files: FileList,
@@ -56,7 +56,7 @@ export async function fileUploadMultiple(
   formData.append("dirId", dirId);
 
   try {
-    const res = await fetch(apis["/api/upload-multiple"], {
+    const res = await fetch(apies["/api/upload-multiple"], {
       method: "POST",
       body: formData,
       headers: {

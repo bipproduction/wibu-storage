@@ -1,5 +1,5 @@
 import { ntf } from "@/state/use_notification";
-import { apis } from "../routes";
+import { apies } from "../routes";
 import { Token } from "../token";
 
 export async function fileRename(
@@ -8,7 +8,7 @@ export async function fileRename(
   onSuccess: () => void
 ) {
   if (newName === "") return ntf.set({ type: "error", msg: "name cannot be empty" });
-  const res = await fetch(apis["/api/files/[id]/rename"]({ id: fileId }), {
+  const res = await fetch(apies["/api/files/[id]/rename"]({ id: fileId }), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

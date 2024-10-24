@@ -1,6 +1,6 @@
 "use client";
 import { libClient } from "@/lib/lib_client";
-import { apis } from "@/lib/routes";
+import { apies } from "@/lib/routes";
 import { ntf } from "@/state/use_notification";
 import {
   Box,
@@ -55,7 +55,7 @@ export function FileItem({
   }
 
   function onDoubleClick(id: string) {
-    window.open(apis["/api/files/[id]"]({ id }), "_blank");
+    window.open(apies["/api/files/[id]"]({ id }), "_blank");
   }
 
   function onContextMenu(e: React.MouseEvent) {
@@ -84,7 +84,7 @@ export function FileItem({
   const onCopy = () => {
     const host = window.location.origin;
     window.navigator.clipboard.writeText(
-      host + apis["/api/files/[id]"]({ id: file.id })
+      host + apies["/api/files/[id]"]({ id: file.id })
     );
     setContextMenu("");
     // set({ type: "success", msg: "copied" });
@@ -191,7 +191,7 @@ export function FileItem({
           <Menu.Item
             component={"a"}
             download={file.name}
-            href={apis["/api/files/[id]"]({ id: file.id })}
+            href={apies["/api/files/[id]"]({ id: file.id })}
             leftSection={<MdFileDownload size={14} />}
           >
             Download
@@ -210,7 +210,7 @@ function DisplayImage({ file }: { file: Record<string, any> }) {
       <Image
         onLoad={() => setLoading(false)}
         onError={() => setLoading(false)}
-        src={apis["/api/files/[id]"]({ id: file.id }) + "-size-100"}
+        src={apies["/api/files/[id]"]({ id: file.id }) + "-size-100"}
         w={"100%"}
         alt=""
       />

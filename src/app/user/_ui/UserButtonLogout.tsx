@@ -1,4 +1,4 @@
-import { apis } from "@/lib/routes";
+import { apies } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { useNotification } from "@/state/use_notification";
 import { Button } from "@mantine/core";
@@ -9,7 +9,7 @@ export function UserButtonLogout() {
     const [loading, setLoading] = useState(false)
     async function onClick() {
         setLoading(true)
-        const res = await fetch(apis["/api/signout"], {
+        const res = await fetch(apies["/api/signout"], {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${Token.value}`

@@ -1,6 +1,6 @@
 import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
-import { apis } from "../routes";
+import { apies } from "../routes";
 
 export async function fileUpload(
   file: File,
@@ -48,7 +48,7 @@ export async function fileUpload(
   formData.append("dirId", dirId);
 
   try {
-    const res = await fetch(apis["/api/upload"], {
+    const res = await fetch(apies["/api/upload"], {
       method: "POST",
       body: formData,
       headers: {

@@ -22,9 +22,12 @@ export async function middleware(req: NextRequest) {
     "/api/signin",
     "/api/signup",
     "/assets/img/bg.png",
+    "/auth/forgot-password",
+    "/api/forgot-password",
+    "/api/reset-password",
   ];
 
-  const publicPatterns = [/^\/api\/files\/\w+/];
+  const publicPatterns = [/^\/api\/files\/\w+/, /^\/auth\/reset-password\/\w+/];
 
   if (publicPatterns.some((pattern) => pattern.test(req.nextUrl.pathname))) {
     return handleCors(req, NextResponse.next());

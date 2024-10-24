@@ -1,7 +1,7 @@
 "use client";
 
 import { libClient } from "@/lib/lib_client";
-import { apis, pages } from "@/lib/routes";
+import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
 import {
@@ -72,7 +72,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
   const loadDir = async () => {
     const res = await fetch(
-      apis["/api/dir/[id]/list"]({ id: parentId as string }),
+      apies["/api/dir/[id]/list"]({ id: parentId as string }),
       {
         method: "GET",
         headers: {
@@ -93,7 +93,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
     }
 
     const resDir = await fetch(
-      apis["/api/dir/[id]/find/dir"]({ id: parentId as string }),
+      apies["/api/dir/[id]/find/dir"]({ id: parentId as string }),
       {
         method: "GET",
         headers: {
@@ -461,7 +461,7 @@ function DirSearch() {
     setValue(value);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const res = await fetch(
-      apis["/api/dir/[id]/search/[q]"]({
+      apies["/api/dir/[id]/search/[q]"]({
         id: DirId.value,
         q: value || "empty-search"
       }),

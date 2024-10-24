@@ -1,6 +1,6 @@
 "use client";
 
-import { apis, pages } from "@/lib/routes";
+import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
 import { Stack, Text, Box, Group, Button, ActionIcon } from "@mantine/core";
@@ -21,7 +21,7 @@ export default function Page() {
 
   async function loadTree() {
     try {
-      const res = await fetch(apis["/api/dir/[id]/tree"]({ id: "root" }), {
+      const res = await fetch(apies["/api/dir/[id]/tree"]({ id: "root" }), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${Token.value}`,

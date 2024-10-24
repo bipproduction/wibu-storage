@@ -1,7 +1,7 @@
 "use client";
 
 import { gState } from "@/lib/gatate";
-import { apis } from "@/lib/routes";
+import { apies } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
 import {
@@ -28,7 +28,7 @@ type ApiKey = {} & Prisma.ApiKeyGetPayload<{ select: { name: true } }>;
 export default function Page() {
   const [listApikey, setListApikey] = useState<any[] | null>(null);
   async function loadApikey() {
-    const res = await fetch(apis["/api/apikey/list"], {
+    const res = await fetch(apies["/api/apikey/list"], {
       method: "GET",
       headers: {
         Authorization: `Bearer ${Token.value}`
@@ -151,7 +151,7 @@ function ApiKeyItemActivate({
 
     try {
       const res = await fetch(
-        apis["/api/apikey/[id]/activate"]({ id: data.id as string }),
+        apies["/api/apikey/[id]/activate"]({ id: data.id as string }),
         {
           method: "PUT",
           headers: {
@@ -206,7 +206,7 @@ function ApiKeyRename({
       if (dataApi.name === "")
         return ntf.set({ type: "error", msg: "name cannot be empty" });
       const res = await fetch(
-        apis["/api/apikey/[id]/rename"]({ id: dataApi.id as string }),
+        apies["/api/apikey/[id]/rename"]({ id: dataApi.id as string }),
         {
           method: "PUT",
           headers: {
@@ -262,7 +262,7 @@ function ApikeyCreate({ loadApikey }: { loadApikey: () => void }) {
       return ntf.set({ type: "error", msg: "name cannot be empty" });
     try {
       setLoading(true);
-      const res = await fetch(apis["/api/apikey/create"], {
+      const res = await fetch(apies["/api/apikey/create"], {
         method: "POST",
         headers: {
           Authorization: `Bearer ${Token.value}`

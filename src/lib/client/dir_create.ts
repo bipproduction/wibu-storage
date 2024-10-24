@@ -1,5 +1,5 @@
 import { ntf } from "@/state/use_notification";
-import { apis } from "../routes";
+import { apies } from "../routes";
 import { Token } from "../token";
 
 export async function dirCreate(
@@ -9,7 +9,7 @@ export async function dirCreate(
 ) {
   if (name === "")
     return ntf.set({ type: "error", msg: "name cannot be empty" });
-  const res = await fetch(apis["/api/dir/[id]/create"]({ id: parentId }), {
+  const res = await fetch(apies["/api/dir/[id]/create"]({ id: parentId }), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

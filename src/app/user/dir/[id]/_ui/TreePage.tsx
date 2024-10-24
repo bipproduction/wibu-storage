@@ -1,7 +1,7 @@
 "use client";
 
 import { gState } from "@/lib/gatate";
-import { apis, pages } from "@/lib/routes";
+import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
 import { ntf } from "@/state/use_notification";
 import { useHookstate } from "@hookstate/core";
@@ -32,7 +32,7 @@ export function TreePage({ dirId }: { dirId: string }) {
 
   async function loadTree() {
     try {
-      const res = await fetch(apis["/api/dir/[id]/tree"]({ id: "root" }), {
+      const res = await fetch(apies["/api/dir/[id]/tree"]({ id: "root" }), {
         method: "GET",
         headers: {
           Authorization: `Bearer ${Token.value}`

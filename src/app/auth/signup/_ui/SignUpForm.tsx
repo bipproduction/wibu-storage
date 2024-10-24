@@ -1,5 +1,5 @@
 'use client'
-import { apis } from "@/lib/routes"
+import { apies } from "@/lib/routes"
 import { ntf } from "@/state/use_notification"
 import { Button, Flex, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
 import Link from "next/link"
@@ -18,7 +18,7 @@ export function SignupForm() {
         if (!form || !form.name || !form.email || !form.password) return ntf.set({ type: "error", msg: "Please fill all the fields" });
 
         setLoading(true);
-        const response = await fetch(apis["/api/signup"], {
+        const response = await fetch(apies["/api/signup"], {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
