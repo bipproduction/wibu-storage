@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/bip/Documents/projects/bip/wibu-storage/logs/frontend/.ba2d68939a6e37254c65bf07891a4b010a7cddc3-audit.json",
+    "files": [
+        {
+            "date": 1733859748117,
+            "name": "/Users/bip/Documents/projects/bip/wibu-storage/logs/frontend/combined-2024-12-11.log",
+            "hash": "e4694618fec163ac5fff11a6c884188431f98c4689d38fa431d1b4339a43563d"
+        }
+    ],
+    "hashType": "sha256"
+}

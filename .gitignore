@@ -43,6 +43,6 @@ next-env.d.ts
 
 certificates
 
-logs/
-*.log
-logs/*.log
+# logs/
+# *.log
+# logs/*.log

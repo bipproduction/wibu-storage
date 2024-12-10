@@ -1,0 +1,138 @@
+/* app/admin/logs/logs.module.css */
+.container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  
+  .filterContainer {
+    margin-bottom: 16px;
+  }
+  
+  .select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 200px;
+  }
+  
+  .logsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .logItem {
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .errorLog {
+    background-color: #fef2f2;
+  }
+  
+  .warnLog {
+    background-color: #fefce8;
+  }
+  
+  .infoLog {
+    background-color: #ffffff;
+  }
+  
+  .logHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .timestamp {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .level {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .errorLevel {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+  
+  .warnLevel {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  .infoLevel {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .message {
+    margin-top: 8px;
+  }
+  
+  .metadata {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f9fafb;
+    border-radius: 4px;
+    font-size: 14px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 24px;
+    color: #666;
+  }
+  
+  .error {
+    color: #dc2626;
+    text-align: center;
+    padding: 24px;
+  }
+  
+  /* Hover effects */
+  .logItem:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .select:hover {
+    border-color: #999;
+  }
+  
+  /* Focus states */
+  .select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .container {
+      padding: 16px;
+    }
+  
+    .logHeader {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .metadata {
+      font-size: 12px;
+    }
+  }
