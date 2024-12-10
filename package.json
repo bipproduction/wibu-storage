@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "bun --bun next dev --experimental-https",
-    "build": "bun --bun next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=2048' bun --bun next build",
     "start": "bun --bun next start",
     "lint": "next lint"
   },
