@@ -42,3 +42,6 @@ uploads
 next-env.d.ts
 
 certificates
+
+# logs
+logs/
