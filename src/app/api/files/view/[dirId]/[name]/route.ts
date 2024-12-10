@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import backendLogger from "@/util/backend-logger";
 import fs from "fs/promises";
 import path from "path";
 import sharp from "sharp";
@@ -68,7 +69,7 @@ export const GET = async (
       }
     });
   } catch (error) {
-    console.error("Error reading file:", error);
+    backendLogger.error("Error reading file", error);
     return new Response("Error reading file", { status: 500 });
   }
 };

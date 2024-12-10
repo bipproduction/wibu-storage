@@ -22,6 +22,7 @@
     "@uiw/react-markdown-preview": "^5.1.2",
     "colors": "^1.4.0",
     "crypto-js": "^4.2.0",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "jose": "^5.7.0",
     "lodash": "^4.17.21",

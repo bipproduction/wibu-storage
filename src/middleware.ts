@@ -1,3 +1,4 @@
+// src/middleware.ts
 import { jwtVerify, SignJWT } from "jose";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -7,6 +8,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  role?: string;
 }
 
 // Constants
@@ -20,7 +22,11 @@ const PUBLIC_ROUTES = [
   "/auth/forgot-password",
   "/api/forgot-password",
   "/api/reset-password",
-  "/api/logs"
+] as string[];
+
+const ADMIN_ROUTES = [
+  "/admin/logs",
+  "/api/logs/view"
 ] as string[];
 
 const PUBLIC_PATTERNS = [
@@ -28,7 +34,7 @@ const PUBLIC_PATTERNS = [
   /^\/auth\/reset-password\/\w+/
 ] as const;
 
-// Configuration
+// Auth configuration
 const secretKey = process.env.NEXT_PUBLIC_SESSION_SECRET;
 if (!secretKey) {
   throw new Error("NEXT_PUBLIC_SESSION_SECRET is not defined");
@@ -88,7 +94,7 @@ function handleCors(req: NextRequest, res: NextResponse): NextResponse {
   return res;
 }
 
-// Unauthorized Response Helper
+// Response Helpers
 function createUnauthorizedResponse(message = "Unauthorized") {
   return new NextResponse(JSON.stringify({ error: message }), {
     status: 401,
@@ -96,86 +102,91 @@ function createUnauthorizedResponse(message = "Unauthorized") {
   });
 }
 
+function createForbiddenResponse(message = "Forbidden") {
+  return new NextResponse(JSON.stringify({ error: message }), {
+    status: 403,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+// Auth Helpers
+function getTokenFromRequest(req: NextRequest): string | null {
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+  return req.cookies.get("ws_token")?.value || null;
+}
+
 // Middleware
 export async function middleware(req: NextRequest) {
-  // Check public patterns
+  // Check public patterns first
   if (PUBLIC_PATTERNS.some((pattern) => pattern.test(req.nextUrl.pathname))) {
+    return handleCors(req, NextResponse.next());
+  }
+
+  // Get token and user
+  const token = getTokenFromRequest(req);
+  const user = token ? await verifyToken(token) : null;
+
+  // Handle admin routes
+  if (ADMIN_ROUTES.includes(req.nextUrl.pathname)) {
+    if (!user) {
+      return handleCors(
+        req,
+        NextResponse.redirect(new URL("/auth/signin", req.url))
+      );
+    }
+
+    // if (user.role !== 'admin') {
+    //   return handleCors(
+    //     req,
+    //     createForbiddenResponse("Admin access required")
+    //   );
+    // }
+
+    // Allow access to admin routes
     return handleCors(req, NextResponse.next());
   }
 
   // Handle public routes
   if (PUBLIC_ROUTES.includes(req.nextUrl.pathname)) {
-    const token = req.cookies.get("ws_token")?.value;
-    if (!token) {
-      return handleCors(req, NextResponse.next());
+    if (user) {
+      // Redirect authenticated users to dashboard
+      return handleCors(
+        req,
+        NextResponse.redirect(new URL("/user", req.nextUrl))
+      );
     }
-
-    const user = await verifyToken(token);
-    if (!user) {
-      return handleCors(req, NextResponse.next());
-    }
-
-    return handleCors(
-      req,
-      NextResponse.redirect(new URL("/user", req.nextUrl))
-    );
+    return handleCors(req, NextResponse.next());
   }
 
   // Handle API routes
   if (req.nextUrl.pathname.startsWith("/api")) {
-    try {
-      const authHeader = req.headers.get("Authorization");
-      const token = authHeader?.startsWith("Bearer ") 
-        ? authHeader.slice(7) 
-        : null;
-
-      if (!token) {
-        return handleCors(
-          req,
-          createUnauthorizedResponse("Missing authorization token")
-        );
-      }
-
-      const user = await verifyToken(token);
-      if (!user) {
-        return handleCors(
-          req,
-          createUnauthorizedResponse("Invalid token")
-        );
-      }
-
-      // Add user to request headers for downstream use
-      const requestHeaders = new Headers(req.headers);
-      requestHeaders.set('x-user-id', user.id);
-      requestHeaders.set('x-user-email', user.email);
-
+    if (!user) {
       return handleCors(
         req,
-        NextResponse.next({
-          request: {
-            headers: requestHeaders,
-          },
-        })
-      );
-    } catch (error) {
-      console.error("API route error:", error);
-      return handleCors(
-        req,
-        createUnauthorizedResponse("Authentication failed")
+        createUnauthorizedResponse("Authentication required")
       );
     }
-  }
 
-  // Handle protected routes
-  const token = req.cookies.get("ws_token")?.value;
-  if (!token) {
+    // Add user info to headers
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-user-id', user.id);
+    requestHeaders.set('x-user-email', user.email);
+    requestHeaders.set('x-user-role', user.role || 'user');
+
     return handleCors(
       req,
-      NextResponse.redirect(new URL("/auth/signin", req.url))
+      NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      })
     );
   }
 
-  const user = await verifyToken(token);
+  // Handle protected routes
   if (!user) {
     return handleCors(
       req,
@@ -184,7 +195,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Prevent authenticated users from accessing auth pages
-  if (req.nextUrl.pathname.startsWith("/auth/") && user) {
+  if (req.nextUrl.pathname.startsWith("/auth/")) {
     return handleCors(
       req,
       NextResponse.redirect(new URL("/user", req.url))
