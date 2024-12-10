@@ -3,7 +3,6 @@
 import { libClient } from "@/lib/lib_client";
 import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ntf } from "@/state/use_notification";
 import {
   ActionIcon,
   Box,
@@ -33,6 +32,7 @@ import { gState } from "@/lib/gatate";
 import { DirId } from "@/lib/static_value";
 import { FaX } from "react-icons/fa6";
 import { TreePage } from "./TreePage";
+import { clientLogger } from "@/util/client-logger";
 
 type Dir = {} & Prisma.DirGetPayload<{
   select: {
@@ -88,7 +88,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
         setlistDir(json.dirs);
         setlistFile(json.files);
       } catch (error) {
-        console.log(error);
+        clientLogger.error("Error load dir:", error);
       }
     }
 
@@ -108,7 +108,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
         const json = await resDir.json();
         setDirVal(json.data);
       } catch (error) {
-        console.log(error);
+        clientLogger.error("Error load dir:", error);
       }
     }
   };
@@ -128,8 +128,12 @@ export default function DirPage({ params }: { params: { id: string } }) {
   };
 
   const onDropCapture = async (e: React.DragEvent) => {
-    if (parentId === "root")
-      return ntf.set({ type: "error", msg: "Cannot upload file to root" });
+    if (parentId === "root") {
+      alert("You can't upload file to root");
+      clientLogger.error("You can't upload file to root");
+      return;
+    }
+
     // setLoading(true);
     newFileLoadingState.set(true);
     try {
@@ -214,7 +218,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
         }
       }
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error upload file:", error);
     } finally {
       newFileLoadingState.set(false);
       // setLoading(false);
@@ -224,7 +228,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("drop");
+    clientLogger.info("onDrop");
   };
 
   const onCreateNewFolder = () => {
@@ -392,13 +396,18 @@ function UploadButton({
   async function onUpload(files: File[] | null) {
     try {
       newFileLoadingState.set(true);
-      if (!parentId)
-        return ntf.set({
-          type: "error",
-          msg: "tidak bisa upload file ke root"
-        });
-      if (!files || files.length === 0)
-        return ntf.set({ type: "error", msg: "no file selected" });
+      if (!parentId) {
+        alert("tidak bisa upload file ke root");
+        clientLogger.error("tidak bisa upload file ke root");
+        return;
+      }
+
+      if (!files || files.length === 0) {
+        alert("tidak ada file yang dipilih");
+        clientLogger.error("tidak ada file yang dipilih");
+        return;
+      }
+
       if (files.length > 0) {
         if (files.length === 1) {
           await libClient.fileUpload(files[0], parentId!, () => {
@@ -425,7 +434,7 @@ function UploadButton({
         return;
       }
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error upload:", error);
     } finally {
       // dirState.set(gState.random());
       reloadDir(Math.random());
@@ -474,7 +483,7 @@ function DirSearch() {
     );
     const data = await res.text();
 
-    console.log(data);
+    clientLogger.info(data);
   }
 
   useShallowEffect(() => {

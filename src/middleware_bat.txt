@@ -5,7 +5,7 @@ import { libServer } from "./lib/lib_server";
 async function verifyToken(token: string) {
   // console.log("===> middleware :", token);
   try {
-    const user = await libServer.decrypt({ token });
+    const user = await decrypt({ token });
     if (!user) {
       return null;
     }

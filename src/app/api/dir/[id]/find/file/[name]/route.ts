@@ -1,11 +1,12 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 
 export const GET = (
   req: Request,
   { params }: { params: { id: string; name: string } }
 ) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     if (!params.name || !params.id || params.id === "root") {
       return new Response("Bad Request", { status: 400 });
     }

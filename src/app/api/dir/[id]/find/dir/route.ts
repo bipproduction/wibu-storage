@@ -1,8 +1,9 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 
 export const GET = (req: Request, { params }: { params: { id: string } }) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     const dir = await prisma.dir.findUnique({
       where: {
         id: params.id

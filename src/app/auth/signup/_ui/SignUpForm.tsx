@@ -1,6 +1,6 @@
 'use client'
 import { apies } from "@/lib/routes"
-import { ntf } from "@/state/use_notification"
+import { clientLogger } from "@/util/client-logger"
 import { Button, Flex, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core"
 import Link from "next/link"
 import { useState } from "react"
@@ -15,7 +15,11 @@ export function SignupForm() {
     const [loading, setLoading] = useState(false);
 
     async function onSubmit() {
-        if (!form || !form.name || !form.email || !form.password) return ntf.set({ type: "error", msg: "Please fill all the fields" });
+        if (!form || !form.name || !form.email || !form.password) {
+            alert("Please fill all the fields");
+            clientLogger.error("Please fill all the fields");
+            return;
+        }
 
         setLoading(true);
         const response = await fetch(apies["/api/signup"], {
@@ -28,7 +32,9 @@ export function SignupForm() {
         setLoading(false);
         const data = await response.text();
         if (response.status !== 200) {
-            return ntf.set({ type: "error", msg: data });
+            alert(data);
+            clientLogger.error(data);
+            return;
         };
         setForm(null);
         const dataJson = JSON.parse(data);

@@ -1,18 +1,20 @@
 // /api/files/delete/[dirId]/[name]
-import { libServer } from "@/lib/lib_server";
+
 import prisma from "@/lib/prisma";
 import path from "path";
 import fs from "fs/promises";
+import backendLogger from "@/util/backend-logger";
+import { verifyUserToken } from "@/lib/lib_server";
 
 export const DELETE = (
   req: Request,
   { params }: { params: { dirId: string; name: string } }
 ) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     try {
       const { dirId, name } = params;
       if (!dirId || !name) {
-        console.log("Bad Request Require id and name", { status: 400 });
+        backendLogger.error("Bad Request Require id and name");
         return new Response("Bad Request Require id and name", { status: 400 });
       }
 
@@ -42,7 +44,7 @@ export const DELETE = (
 
       return new Response(JSON.stringify({ data: file }));
     } catch (error) {
-      console.error(error);
+      backendLogger.error("Internal Server Error");
       return new Response("Internal Server Error", { status: 500 });
     }
   });

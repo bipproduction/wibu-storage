@@ -1,15 +1,17 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
+import backendLogger from "@/util/backend-logger";
 import "colors";
 
 export const POST = (req: Request, { params }: { params: { id: string } }) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     const id = params.id === "root" ? null : params.id;
     let { name } = await req.json();
 
     if (!name) {
       return new Response(JSON.stringify({ error: "name is required" }), {
-        status: 400,
+        status: 400
       });
     }
 
@@ -19,9 +21,9 @@ export const POST = (req: Request, { params }: { params: { id: string } }) =>
         userId: user.id,
         parentId: id,
         name: {
-          startsWith: name,
-        },
-      },
+          startsWith: name
+        }
+      }
     });
 
     // If a directory with the same name exists, generate a unique name
@@ -41,13 +43,13 @@ export const POST = (req: Request, { params }: { params: { id: string } }) =>
 
     // Create the new directory with the (possibly modified) name
     const create = await prisma.dir.create({
-      data: { name, parentId: id, userId: user.id } as any,
+      data: { name, parentId: id, userId: user.id } as any
     });
 
-    console.log(create);
+    backendLogger.info(`Created directory: ${create.name}`);
 
     return new Response(JSON.stringify({ data: create }), {
       status: 201,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   });

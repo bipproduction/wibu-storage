@@ -1,9 +1,8 @@
 "use client";
 
-import { gState } from "@/lib/gatate";
 import { apies } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import {
   ActionIcon,
   Button,
@@ -41,7 +40,8 @@ export default function Page() {
       return;
     }
 
-    console.log(await res.text());
+    const text = await res.text();
+    clientLogger.error(text);
   }
 
   useShallowEffect(() => {
@@ -164,15 +164,15 @@ function ApiKeyItemActivate({
       );
       const resText = await res.text();
       if (!res.ok) {
-        console.log(resText);
-        ntf.set({ type: "error", msg: resText });
+        clientLogger.error(resText);
+        alert(resText);
         return;
       }
 
       const resJson = JSON.parse(resText);
       setDataApi(resJson);
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error sending logs:", error);
     } finally {
       setLoading(false);
     }
@@ -203,8 +203,12 @@ function ApiKeyRename({
     if (e.key !== "Enter") return;
     try {
       setLoading(true);
-      if (dataApi.name === "")
-        return ntf.set({ type: "error", msg: "name cannot be empty" });
+      if (dataApi.name === "") {
+        alert("Please fill all the fields");
+        clientLogger.error("Please fill all the fields");
+        return;
+      }
+
       const res = await fetch(
         apies["/api/apikey/[id]/rename"]({ id: dataApi.id as string }),
         {
@@ -220,15 +224,15 @@ function ApiKeyRename({
       const dataText = await res.text();
 
       if (!res.ok) {
-        console.log(dataText);
-        ntf.set({ type: "error", msg: dataText });
+        clientLogger.error("Error rename:", dataText);
+        alert("Error rename:");
         return;
       }
 
       const dataJson = JSON.parse(dataText);
       setDataItem(dataJson);
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error rename:", error);
     } finally {
       setLoading(false);
       setIsRename(false);
@@ -258,8 +262,12 @@ function ApikeyCreate({ loadApikey }: { loadApikey: () => void }) {
   const [form, setForm] = useState({ name: "" } as ApiKey);
   const [loading, setLoading] = useState(false);
   async function onCreate() {
-    if (form.name === "")
-      return ntf.set({ type: "error", msg: "name cannot be empty" });
+    if (form.name === "") {
+      alert("Please fill all the fields");
+      clientLogger.error("Please fill all the fields");
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await fetch(apies["/api/apikey/create"], {
@@ -276,7 +284,7 @@ function ApikeyCreate({ loadApikey }: { loadApikey: () => void }) {
         return;
       }
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error apikey create:", error);
     } finally {
       setLoading(false);
     }

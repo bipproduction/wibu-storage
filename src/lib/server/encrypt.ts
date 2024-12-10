@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { SignJWT } from "jose";
 
-const secretKey = process.env.SESSION_SECRET;
+const secretKey = process.env.NEXT_PUBLIC_SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
 export async function encrypt({
   user,

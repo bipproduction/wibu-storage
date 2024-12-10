@@ -1,8 +1,9 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 
 export const PUT = (req: Request, { params }: { params: { id: string } }) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     const body = await req.json();
     const rename = await prisma.apiKey.update({
       where: {

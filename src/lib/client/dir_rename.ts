@@ -1,13 +1,17 @@
-import { ntf } from "@/state/use_notification";
 import { apies } from "../routes";
 import { Token } from "../token";
+import { clientLogger } from "@/util/client-logger";
 
 export async function dirRename(
   newName: string,
   dirId: string,
   onSuccess: () => void
 ) {
-  if (newName === "") return ntf.set({ type: "error", msg: "name cannot be empty" });
+  if (newName === "") {
+    alert("Please fill all the fields");
+    clientLogger.error("Please fill all the fields");
+    return; 
+  }
   const res = await fetch(apies["/api/dir/[id]/rename"]({ id: dirId }), {
     method: "PUT",
     headers: {
@@ -18,7 +22,10 @@ export async function dirRename(
   });
 
   if (res.ok) {
+    clientLogger.info("dir rename success");
     return onSuccess();
   }
-  return ntf.set({ type: "error", msg: "failed to rename dir" });
+  const text = await res.text();
+  clientLogger.error(text);
+  alert(text);
 }

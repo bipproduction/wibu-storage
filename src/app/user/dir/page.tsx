@@ -2,7 +2,6 @@
 
 import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ntf } from "@/state/use_notification";
 import { Stack, Text, Box, Group, Button, ActionIcon } from "@mantine/core";
 import { useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
@@ -24,20 +23,20 @@ export default function Page() {
       const res = await fetch(apies["/api/dir/[id]/tree"]({ id: "root" }), {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${Token.value}`,
-        },
+          Authorization: `Bearer ${Token.value}`
+        }
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        ntf.set({ msg: errorText, type: "error" });
+        alert("Failed to load directories: " + errorText);
         return;
       }
 
       const dataJson = await res.json();
       setListDir(dataJson.data);
     } catch (error) {
-      ntf.set({ msg: `Failed to load directories: ${error}`, type: "error" });
+      alert("Failed to load directories: " + error);
     }
   }
 
@@ -60,27 +59,33 @@ function DirItem({ dirs, depth }: { dirs: Dirs; depth: number }) {
   return (
     <Box pl={24}>
       <Group style={{ borderLeft: "2px solid #ccc" }} pl={"md"} gap={0}>
-        {dirs.children && dirs.children.length > 0 && ( // Show button only if there are children
-          <ActionIcon
-            size="xs"
-            variant="subtle"
-            onClick={() => setIsOpen(!isOpen)}
-            style={{ marginRight: "5px" }}
-          >
-            {isOpen ? <BiMinusCircle /> : <BiPlusCircle />} {/* Toggle button */}
-          </ActionIcon>
-        )}
+        {dirs.children &&
+          dirs.children.length > 0 && ( // Show button only if there are children
+            <ActionIcon
+              size="xs"
+              variant="subtle"
+              onClick={() => setIsOpen(!isOpen)}
+              style={{ marginRight: "5px" }}
+            >
+              {isOpen ? <BiMinusCircle /> : <BiPlusCircle />}{" "}
+              {/* Toggle button */}
+            </ActionIcon>
+          )}
         <AiFillFolder size={20} color="orange" />
-        <Text component={Link} href={pages["/user/dir/[id]"]({ id: dirs.id })}>{dirs.name}</Text>
+        <Text component={Link} href={pages["/user/dir/[id]"]({ id: dirs.id })}>
+          {dirs.name}
+        </Text>
       </Group>
 
-      {isOpen && dirs.children && dirs.children.length > 0 && ( // Conditional rendering of children
-        <Stack gap={0}>
-          {dirs.children.map((child) => (
-            <DirItem key={child.id} dirs={child} depth={depth + 1} />
-          ))}
-        </Stack>
-      )}
+      {isOpen &&
+        dirs.children &&
+        dirs.children.length > 0 && ( // Conditional rendering of children
+          <Stack gap={0}>
+            {dirs.children.map((child) => (
+              <DirItem key={child.id} dirs={child} depth={depth + 1} />
+            ))}
+          </Stack>
+        )}
     </Box>
   );
 }

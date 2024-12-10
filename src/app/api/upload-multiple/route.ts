@@ -1,8 +1,6 @@
-import { libServer } from "@/lib/lib_server";
+import { filePathGenerate, listMimeTypes, verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
-import _ from "lodash";
-import moment from "moment";
 import path from "path";
 const root = path.join(process.cwd(), "uploads");
 
@@ -10,7 +8,7 @@ const root = path.join(process.cwd(), "uploads");
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
 export const POST = (req: Request) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     try {
       const form = await req.formData();
       const dirId = form.get("dirId") as string;
@@ -31,7 +29,7 @@ export const POST = (req: Request) =>
       }
 
       // Daftar MIME types yang diizinkan
-      const allowedMimeTypes = libServer.listMimeTypes;
+      const allowedMimeTypes = listMimeTypes;
 
       const listDataUpload: any[] = [];
       for (const file of files) {
@@ -73,7 +71,7 @@ export const POST = (req: Request) =>
         //   counter++;
         // }
 
-        const pathGenerate = await libServer.filePathGenerate(user.id, file.name);
+        const pathGenerate = await filePathGenerate(user.id, file.name);
 
         // Buat entri file di database
         const uploadFile = await prisma.files.create({

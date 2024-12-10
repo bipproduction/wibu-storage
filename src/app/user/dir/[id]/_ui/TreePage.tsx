@@ -3,7 +3,7 @@
 import { gState } from "@/lib/gatate";
 import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import { useHookstate } from "@hookstate/core";
 import { ActionIcon, Box, Flex, ScrollArea, Stack, Text } from "@mantine/core";
 import { useLocalStorage, useShallowEffect } from "@mantine/hooks";
@@ -21,10 +21,7 @@ export function TreePage({ dirId }: { dirId: string }) {
   const { value: triggerReloadDir, set: reloadDir } = useHookstate(
     gState.reloadDirState
   );
-  // const reloadDir = gState.useDirLoader(() => {
-  //   console.log("reloadDir from tree");
-  //   loadTree();
-  // });
+  
   const [listDir, setListDir] = useLocalStorage<Dirs[]>({
     key: "listDir",
     defaultValue: []
@@ -41,14 +38,16 @@ export function TreePage({ dirId }: { dirId: string }) {
 
       if (!res.ok) {
         const errorText = await res.text();
-        ntf.set({ msg: errorText, type: "error" });
+        alert("Failed to load directories: " + errorText);
+        clientLogger.error("Failed to load directories: " + errorText);
         return;
       }
 
       const dataJson = await res.json();
       setListDir(dataJson.data);
     } catch (error) {
-      ntf.set({ msg: `Failed to load directories: ${error}`, type: "error" });
+      alert("Failed to load directories: " + error);
+      clientLogger.error("Failed to load directories: " + error);
     }
   }
 

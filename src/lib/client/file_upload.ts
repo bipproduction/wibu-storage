@@ -1,6 +1,6 @@
-import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apies } from "../routes";
+import { clientLogger } from "@/util/client-logger";
 
 export async function fileUpload(
   file: File,
@@ -8,7 +8,9 @@ export async function fileUpload(
   onDone: () => void
 ) {
   if (!file) {
-    return ntf.set({ type: "error", msg: "No file selected" });
+    alert("tidak ada file yang dipilih");
+    clientLogger.error("tidak ada file yang dipilih");
+    return;
   }
 
   const allowedMimeTypes = [
@@ -21,26 +23,21 @@ export async function fileUpload(
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/plain",
+    "text/plain"
   ];
 
   // const file = form[0];
 
   if (!allowedMimeTypes.includes(file.type)) {
-    return ntf.set({
-      type: "error",
-      msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
-        ", "
-      )}`,
-    });
+    alert("File type not allowed");
+    clientLogger.error("File type not allowed");
+    return;
   }
 
   if (file.size > 100 * 1024 * 1024) {
-    // 100 MB
-    return ntf.set({
-      type: "error",
-      msg: "File size too large. Max size: 100 MB",
-    });
+    alert("File size too large");
+    clientLogger.error("File size too large");
+    return;
   }
 
   const formData = new FormData();
@@ -52,19 +49,20 @@ export async function fileUpload(
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${Token.value}`,
-      },
+        Authorization: `Bearer ${Token.value}`
+      }
     });
 
     if (res.ok) {
-      console.log("File uploaded successfully");
+      clientLogger.info("File uploaded successfully");
     } else {
       const errorText = await res.text();
-      ntf.set({ type: "error", msg: errorText });
+      alert("Failed to upload file: " + errorText);
+      clientLogger.error(errorText);
     }
   } catch (error) {
-    ntf.set({ type: "error", msg: "Failed to upload file" });
-    console.error("Upload error:", error);
+    alert("Failed to upload file" + error);
+    clientLogger.error("Failed to upload file", error);
   } finally {
     onDone();
   }

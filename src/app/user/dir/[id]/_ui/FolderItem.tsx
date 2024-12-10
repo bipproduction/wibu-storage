@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { MdDelete, MdEdit, MdFolder, MdOpenInNew } from "react-icons/md";
 import { Rename } from "./Rename";
-import { ntf } from "@/state/use_notification";
 import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";
 import { useRouter } from "next/navigation";
+import { clientLogger } from "@/util/client-logger";
 
 export function FolderItem({
   dir,
@@ -66,10 +66,8 @@ export function FolderItem({
       setContextMenu("");
       // dirState.set(gState.random());
       reloadDir(Math.random());
-      ntf.set({
-        type: "success",
-        msg: "Folder deleted successfully"
-      });
+      alert("deleted");
+      clientLogger.info("deleted");
     });
   };
 

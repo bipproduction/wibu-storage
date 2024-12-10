@@ -1,11 +1,12 @@
-import { libServer } from "@/lib/lib_server";
+import { apiKeyCreate, verifyUserToken } from "@/lib/lib_server";
 
 
-export const POST = (req: Request) => libServer.verifyUserToken(req, async (user) => {
+
+export const POST = (req: Request) => verifyUserToken(req, async (user) => {
   const body = await req.json();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
-  const api_key = await libServer.apiKeyCreate({
+  const api_key = await apiKeyCreate({
     name: body.name,
     user: user,
   });

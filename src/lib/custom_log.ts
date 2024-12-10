@@ -1,4 +1,4 @@
-export const customLog =
+export const customLogx =
   (isLog = true) =>
   (text: string, ststus: "info" | "warn" | "error" = "info") => {
     if (isLog) {

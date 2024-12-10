@@ -1,6 +1,6 @@
 "use client";
 import { apies } from "@/lib/routes";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import { Button, PasswordInput, Stack, Title } from "@mantine/core";
 import { useState } from "react";
 
@@ -8,12 +8,21 @@ export default function Page({ params }: { params: { code: string } }) {
   const [form, setForm] = useState({ password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
   async function onSubmit() {
+
     setLoading(true);
     try {
-      if (!form.password)
-        return ntf.set({ type: "error", msg: "Please fill all the fields" });
-      if (form.password !== form.confirmPassword)
-        return ntf.set({ type: "error", msg: "Password does not match" });
+      if (!form.password) {
+        alert("Please fill all the fields");
+        clientLogger.error("Please fill all the fields");
+        return;
+      }
+
+      if (form.password !== form.confirmPassword) {
+        alert("Password and confirm password must be same");
+        clientLogger.error("Password and confirm password must be same");
+        return;
+      }
+
       const response = await fetch(apies["/api/reset-password"], {
         method: "POST",
         headers: {
@@ -26,14 +35,15 @@ export default function Page({ params }: { params: { code: string } }) {
       });
       const data = await response.text();
       if (response.status !== 200) {
-        return ntf.set({ type: "error", msg: data });
+        clientLogger.error("reset password failed", data);
+        return;
       }
-      ntf.set({ type: "success", msg: data });
+      clientLogger.info("reset password success");
       setForm({ password: "", confirmPassword: "" });
       const dataJson = JSON.parse(data);
       window.location.href = dataJson.redirect;
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error sending logs:", error);
     } finally {
       setLoading(false);
     }

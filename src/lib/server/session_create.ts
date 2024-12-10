@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { libServer } from "../lib_server";
 import { Prisma } from "@prisma/client";
 
 export async function sessionCreate({ token }: { token: string }) {

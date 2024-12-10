@@ -1,4 +1,5 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
@@ -6,7 +7,7 @@ import path from "path";
 const root = path.join(process.cwd(), "uploads");
 
 export const DELETE = (req: Request, { params }: { params: { id: string } }) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     try {
       const dir = await prisma.dir.findUnique({
         where: { id: params.id },

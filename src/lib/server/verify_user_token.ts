@@ -1,7 +1,7 @@
 // import _ from "lodash";
-import { libServer } from "../lib_server";
 import prisma from "../prisma";
 import { Prisma } from "@prisma/client";
+import { decrypt } from "./decrypt";
 
 type User = {} & Prisma.UserGetPayload<{
   select: { id: true; name: true; email: true };
@@ -39,7 +39,7 @@ export async function verifyUserToken(
   }
 
   try {
-    const userToken = await libServer.decrypt({ token });
+    const userToken = await decrypt({ token });
     if (!userToken) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401

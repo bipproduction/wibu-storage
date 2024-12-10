@@ -1,14 +1,18 @@
-import { ntf } from "@/state/use_notification";
 import { apies } from "../routes";
 import { Token } from "../token";
+import { clientLogger } from "@/util/client-logger";
 
 export async function dirCreate(
   parentId: string,
   name: string,
   onSuccess: () => void
 ) {
-  if (name === "")
-    return ntf.set({ type: "error", msg: "name cannot be empty" });
+  if (name === "") {
+    alert("Please fill all the fields");
+    clientLogger.error("Please fill all the fields");
+    return;
+  }
+ 
   const res = await fetch(apies["/api/dir/[id]/create"]({ id: parentId }), {
     method: "POST",
     headers: {
@@ -18,7 +22,9 @@ export async function dirCreate(
     body: JSON.stringify({ name }),
   });
   if (res.ok) {
+    clientLogger.info("dir create success");
     return onSuccess();
   }
-  ntf.set({ type: "error", msg: "failed to create dir" });
+  const text = await res.text();
+  clientLogger.error(text);
 }

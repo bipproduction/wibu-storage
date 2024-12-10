@@ -1,7 +1,7 @@
 "use client";
 
 import { apies } from "@/lib/routes";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import {
   Button,
   Group,
@@ -22,8 +22,11 @@ export default function Page() {
   async function onSubmit() {
     setLoading(true);
     try {
-      if (!form.phone && !form.email)
-        return ntf.set({ type: "error", msg: "Please fill all the fields" });
+      if (!form.phone && !form.email) {
+        alert("Please fill all the fields");
+        clientLogger.error("Please fill all the fields");
+        return;
+      }
 
       const response = await fetch(apies["/api/forgot-password"], {
         method: "POST",
@@ -38,12 +41,15 @@ export default function Page() {
 
       const data = await response.text();
       if (response.status !== 200) {
-        return ntf.set({ type: "error", msg: data });
+        alert(data);
+        clientLogger.error(data);
+        return ;
       }
-      ntf.set({ type: "success", msg: data });
+
+      clientLogger.info("forgot password success");
       setForm({ phone: "", email: "" });
     } catch (error) {
-      console.log(error);
+      clientLogger.error("Error sending logs:", error);
     } finally {
       setLoading(false);
     }

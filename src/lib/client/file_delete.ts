@@ -1,5 +1,5 @@
-import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
+import { clientLogger } from "@/util/client-logger";
 
 export async function fileDelete(fileId: string, onSuccess: () => void) {
   const res = await fetch(`/api/files/${fileId}/delete`, {
@@ -10,8 +10,10 @@ export async function fileDelete(fileId: string, onSuccess: () => void) {
     },
   });
   if (res.ok) {
+    clientLogger.info("file delete success");
     return onSuccess();
   }
   const text = await res.text();
-  ntf.set({ type: "error", msg: text });
+  clientLogger.error(text);
+  alert(text);
 }

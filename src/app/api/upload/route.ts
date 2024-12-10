@@ -1,8 +1,7 @@
-import { libServer } from "@/lib/lib_server";
+import { filePathGenerate, listMimeTypes, verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
+import backendLogger from "@/util/backend-logger";
 import fs from "fs/promises";
-import _ from "lodash";
-import moment from "moment";
 import path from "path";
 // const root = path.join(process.cwd(), "uploads");
 
@@ -10,7 +9,7 @@ import path from "path";
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
 export const POST = (req: Request) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     try {
       const form = await req.formData();
       const dirId = form.get("dirId") as string;
@@ -31,7 +30,7 @@ export const POST = (req: Request) =>
       }
 
       // Daftar MIME types yang diizinkan
-      const allowedMimeTypes = libServer.listMimeTypes;
+      const allowedMimeTypes = listMimeTypes;
 
       // Validasi MIME type
       if (!allowedMimeTypes.includes(file.type)) {
@@ -67,9 +66,9 @@ export const POST = (req: Request) =>
       //   counter++;
       // }
 
-      const pathGenerate = await libServer.filePathGenerate(user.id, file.name);
+      const pathGenerate = await filePathGenerate(user.id, file.name);
 
-      console.log(pathGenerate);
+      backendLogger.info("UPLOAD : ", pathGenerate);
 
       // Buat entri file di database
       const uploadFile = await prisma.files.create({
@@ -101,7 +100,7 @@ export const POST = (req: Request) =>
         { status: 201 }
       );
     } catch (error) {
-      console.error("Error during file upload:", error);
+      backendLogger.error("POST /api/upload", error);
       return new Response("Internal Server Error", { status: 500 });
     }
   });

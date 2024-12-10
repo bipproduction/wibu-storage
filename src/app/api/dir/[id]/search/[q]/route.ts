@@ -1,11 +1,12 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 
 export const GET = async (
   req: Request,
   { params }: { params: { id: string; q: string; page?: string } }
 ) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     const { id, q, page = "1" } = params;
     const limit = "10";
 

@@ -1,4 +1,5 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 // import { userDec } from "@/lib/user_dec";
 import "colors";
@@ -7,7 +8,7 @@ export const GET = async (
   req: Request,
   { params }: { params: { id: string } }
 ) =>
-  libServer.verifyUserToken(req, async (user) => {
+  verifyUserToken(req, async (user) => {
     const id = params.id === "root" ? null : params.id;
     const dirs = await prisma.dir.findMany({
       where: {

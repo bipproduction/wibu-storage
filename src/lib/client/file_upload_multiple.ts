@@ -1,6 +1,6 @@
-import { ntf } from "@/state/use_notification";
 import { Token } from "../token";
 import { apies } from "../routes";
+import { clientLogger } from "@/util/client-logger";
 
 export async function fileUploadMultiple(
   files: FileList,
@@ -8,7 +8,9 @@ export async function fileUploadMultiple(
   onDone: () => void
 ) {
   if (!files || files.length === 0) {
-    return ntf.set({ type: "error", msg: "No files selected" });
+    alert("tidak ada file yang dipilih");
+    clientLogger.error("tidak ada file yang dipilih");
+    return;
   }
 
   const allowedMimeTypes = [
@@ -31,19 +33,19 @@ export async function fileUploadMultiple(
     const file = files[i];
 
     if (!allowedMimeTypes.includes(file.type)) {
-      return ntf.set({
-        type: "error",
-        msg: `File type not allowed. Allowed types: ${allowedMimeTypes.join(
-          ", "
-        )}`,
-      });
+      alert(
+        `File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`
+      )
+      clientLogger.error(`File type not allowed. Allowed types: ${allowedMimeTypes.join(", ")}`);
+      return;
     }
 
     if (file.size > maxFileSize) {
-      return ntf.set({
-        type: "error",
-        msg: "File size too large. Max size: 100 MB",
-      });
+      alert(
+        `File ${file.name} is too large. Maximum file size is ${maxFileSize / 1024 / 1024} MB`
+      )
+      clientLogger.error(`File ${file.name} is too large. Maximum file size is ${maxFileSize / 1024 / 1024} MB`);
+      return;
     }
   }
 
@@ -65,14 +67,15 @@ export async function fileUploadMultiple(
     });
 
     if (res.ok) {
-      console.log("Files uploaded successfully");
+      clientLogger.info("File uploaded successfully");
     } else {
       const errorText = await res.text();
-      ntf.set({ type: "error", msg: errorText });
+      alert("Failed to upload files: " + errorText);
+      clientLogger.error("Failed to upload files: " + errorText);
     }
   } catch (error) {
-    ntf.set({ type: "error", msg: "Failed to upload files" });
-    console.error("Upload error:", error);
+    alert("Error uploading files:"+ error);
+    clientLogger.error("Error uploading files:", error);
   } finally {
     onDone();
   }

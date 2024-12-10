@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
 import _ from "lodash";
-import { libServer } from "@/lib/lib_server";
 import { pages } from "@/lib/routes";
+import backendLogger from "@/util/backend-logger";
+import { sessionCreate } from "@/lib/lib_server";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -13,34 +14,32 @@ export async function POST(req: Request) {
 
 async function signin({
   email,
-  password,
+  password
 }: {
   email: string;
   password: string;
 }) {
-  console.log("LOGIN : ", email, password);
+
+  backendLogger.info("LOGIN : ", email, password);
   // check if user exists
   const user = await prisma.user.findUnique({
     where: {
-      email,
-    },
+      email
+    }
   });
 
   if (!user) {
-    console.log("User not found");
-    return new Response(
-      JSON.stringify({ success: false, message: "User not found" }),
+    backendLogger.error("User not found");
+    return Response.json(
+      { success: false, message: "User not found" },
       { status: 400 }
     );
   }
 
-  // check if password is correct
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordCorrect) {
-    console.log("Incorrect password");
-    return new Response(
-      JSON.stringify({ success: false, message: "Incorrect password" }),
+  if (user.password !== password) {
+    backendLogger.error("Incorrect password");
+    return Response.json(
+      { success: false, message: "Incorrect password" },
       { status: 400 }
     );
   }
@@ -50,39 +49,40 @@ async function signin({
       where: {
         userId: user.id,
         active: true,
-        name: "default",
-      },
+        name: "default"
+      }
     });
 
     if (!apikey) {
-      console.log("API key not found");
-      return new Response(
-        JSON.stringify({ success: false, message: "API key not found" }),
+      backendLogger.error("API key not found");
+      return Response.json(
+        { success: false, message: "API key not found" },
         { status: 400 }
       );
     }
 
-    const token = await libServer.sessionCreate({
-      token: apikey.api_key,
+    const token = await sessionCreate({
+      token: apikey.api_key
     });
 
     if (!token) {
-      console.log("Failed to create session");
-      return new Response(
-        JSON.stringify({ success: false, message: "Failed to create session" }),
-        { status: 500 }
+      backendLogger.error("Failed to create session");
+      return Response.json(
+        { success: false, message: "Failed to create session" },
+        { status: 400 }
       );
     }
 
-    console.log("Login successful");
-    return new Response(
-      JSON.stringify({ success: true, token, redirect: pages["/user"] })
+    backendLogger.info("Login success");
+    return Response.json(
+      { success: true, token, redirect: pages["/user"] },
+      { status: 200 }
     );
-
   } catch (error) {
-    console.log(error);
-    return new Response(JSON.stringify({ success: false, message: error }), {
-      status: 500,
-    });
+    backendLogger.error("Failed to create session");
+    return Response.json(
+      { success: false, message: "Failed to create session" },
+      { status: 400 }
+    );
   }
 }

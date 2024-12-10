@@ -1,6 +1,6 @@
 "use client";
 import { apies } from "@/lib/routes";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import { Button, Flex, Stack, Text, TextInput, Title } from "@mantine/core";
 import Link from "next/link";
 import { useState } from "react";
@@ -15,13 +15,14 @@ export function Signin() {
 
   async function onSubmit() {
     try {
-      if (!form || !form.email || !form.password)
-        return ntf.set({
-          type: "error",
-          msg: "Please fill all the fields",
-          autoClose: false
-        });
+      if (!form || !form.email || !form.password) {
+        alert("Please fill all the fields");
+        clientLogger.error("Please fill all the fields");
+        return;
+      }
+
       setLoading(true);
+      clientLogger.info("send signin", form);
       const response = await fetch(apies["/api/signin"], {
         method: "POST",
         headers: {
@@ -34,12 +35,14 @@ export function Signin() {
       if (response.ok) {
         const dataJson = JSON.parse(data);
         setForm(null);
+        clientLogger.info("signin success", dataJson);
         return (window.location.href = dataJson.redirect);
       }
-      return ntf.set({ type: "error", msg: data });
+      alert("Error signing in");
+      return;
     } catch (error) {
-      console.log(error);
-      return ntf.set({ type: "error", msg: "Something went wrong" });
+      clientLogger.error("Error sending logs:", error);
+      return;
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,12 @@ export function Signin() {
           Signup
         </Button>
       </Flex>
-      <Button variant="transparent" size="compact-xs" component={Link} href="/auth/forgot-password">
+      <Button
+        variant="transparent"
+        size="compact-xs"
+        component={Link}
+        href="/auth/forgot-password"
+      >
         Forgot Password
       </Button>
     </Stack>

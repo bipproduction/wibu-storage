@@ -1,7 +1,7 @@
 "use client";
 import { libClient } from "@/lib/lib_client";
 import { apies } from "@/lib/routes";
-import { ntf } from "@/state/use_notification";
+import { clientLogger } from "@/util/client-logger";
 import {
   Box,
   Center,
@@ -77,7 +77,8 @@ export function FileItem({
       setContextMenu("");
       // todo: reload
       // reload("dir");
-      ntf.set({ type: "success", msg: "deleted" });
+      alert("deleted");
+      clientLogger.info("deleted");
     });
   };
 
@@ -88,7 +89,8 @@ export function FileItem({
     );
     setContextMenu("");
     // set({ type: "success", msg: "copied" });
-    ntf.set({ type: "success", msg: "copied" });
+    alert("copied");
+    clientLogger.info("copied");
   };
 
   const onDownload = () => {

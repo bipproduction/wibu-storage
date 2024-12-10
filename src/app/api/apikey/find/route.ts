@@ -1,7 +1,8 @@
-import { libServer } from "@/lib/lib_server";
+
+import { verifyUserToken } from "@/lib/lib_server";
 import prisma from "@/lib/prisma";
 
-export const GET = (req: Request) => libServer.verifyUserToken(req, async (user) => {
+export const GET = (req: Request) => verifyUserToken(req, async (user) => {
   const apiKey = await prisma.apiKey.findFirst({
     where: {
       userId: user.id,
@@ -12,7 +13,7 @@ export const GET = (req: Request) => libServer.verifyUserToken(req, async (user)
 });
 
 // export async function GET(req: Request) {
-//   const token = await libServer.verifyUserToken(req);
+//   const token = await verifyUserToken(req);
 //   if (!token.user) {
 //     return new Response(JSON.stringify({ error: token.message }), {
 //       status: 401,

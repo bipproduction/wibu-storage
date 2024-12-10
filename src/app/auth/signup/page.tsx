@@ -1,5 +1,4 @@
-import { Stack, TextInput, Title } from "@mantine/core";
-import { useState } from "react";
+import { Stack } from "@mantine/core";
 import { SignupForm } from "./_ui/SignUpForm";
 
 export default function Page() {

@@ -1,5 +1,5 @@
 import "@mantine/core/styles.css";
-import { CustonNotification } from "@/state/use_notification";
+// import { CustonNotification } from "@/state/use_notification";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 
 
@@ -20,8 +20,6 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider defaultColorScheme="dark">
-          <CustonNotification />
-
           {children}
         </MantineProvider>
       </body>

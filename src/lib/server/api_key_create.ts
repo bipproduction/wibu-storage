@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../prisma";
-import { libServer } from "../lib_server";
+import { encrypt } from "./encrypt";
+
 
 type User = {} & Prisma.UserGetPayload<{
   select: { id: true; name: true; email: true };
@@ -17,7 +18,7 @@ export async function apiKeyCreate({
   exp?: string;
   desc?: string;
 }) {
-  const token = await libServer.encrypt({ user, exp });
+  const token = await encrypt({ user, exp });
   const apiKey = await prisma.apiKey.create({
     data: {
       name,
