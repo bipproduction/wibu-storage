@@ -46,3 +46,4 @@ certificates
 # logs/
 # *.log
 # logs/*.log.env
+.env.example
