@@ -18,7 +18,8 @@ import {
   Text,
   TextInput,
   Tooltip,
-  UnstyledButton
+  UnstyledButton,
+  Alert
 } from "@mantine/core";
 import { useLocalStorage, useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
@@ -64,6 +65,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
   // const [loading, setLoading] = useState(false);
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
   // const dirState = useHookstate(gState.dirState);
+  const [error, setError] = useState<string | null>(null);
 
   useShallowEffect(() => {
     loadDir();
@@ -71,45 +73,50 @@ export default function DirPage({ params }: { params: { id: string } }) {
   }, [triggerReloadDir]);
 
   const loadDir = async () => {
-    const res = await fetch(
-      apies["/api/dir/[id]/list"]({ id: parentId as string }),
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Token.value}`
+    try {
+      setError(null); // Reset error state
+      
+      const res = await fetch(
+        apies["/api/dir/[id]/list"]({ id: parentId as string }),
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${Token.value}`
+          }
         }
-      }
-    );
+      );
 
-    if (res.ok) {
-      try {
-        const json = (await res.json()) as { dirs: any[]; files: any[] };
-        setlistDir(json.dirs);
-        setlistFile(json.files);
-      } catch (error) {
-        clientLogger.error("Error load dir:", error);
+      if (!res.ok) {
+        throw new Error(`Failed to load directory: ${res.statusText}`);
       }
-    }
 
-    const resDir = await fetch(
-      apies["/api/dir/[id]/find/dir"]({ id: parentId as string }),
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Token.value}`
+      const json = (await res.json()) as { dirs: any[]; files: any[] };
+      setlistDir(json.dirs);
+      setlistFile(json.files);
+
+      const resDir = await fetch(
+        apies["/api/dir/[id]/find/dir"]({ id: parentId as string }),
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Token.value}`
+          }
         }
-      }
-    );
+      );
 
-    if (resDir.ok) {
-      try {
-        const json = await resDir.json();
-        setDirVal(json.data);
-      } catch (error) {
-        clientLogger.error("Error load dir:", error);
+      if (!resDir.ok) {
+        throw new Error(`Failed to find directory: ${resDir.statusText}`);
       }
+
+      const dirJson = await resDir.json();
+      setDirVal(dirJson.data);
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Terjadi kesalahan saat memuat direktori';
+      setError(message);
+      clientLogger.error("Error loading directory:", error);
     }
   };
 
@@ -128,21 +135,26 @@ export default function DirPage({ params }: { params: { id: string } }) {
   };
 
   const onDropCapture = async (e: React.DragEvent) => {
-    if (parentId === "root") {
-      alert("You can't upload file to root");
-      clientLogger.error("You can't upload file to root");
-      return;
-    }
-
-    // setLoading(true);
-    newFileLoadingState.set(true);
     try {
+      if (parentId === "root") {
+        throw new Error("Tidak dapat mengunggah file ke root direktori");
+      }
+
+      newFileLoadingState.set(true);
       e.preventDefault();
       e.stopPropagation();
 
       const files = e.dataTransfer.files;
-      // Jika data berupa file
+      
       if (files.length > 0) {
+        // Validasi ukuran file
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+        for (let i = 0; i < files.length; i++) {
+          if (files[i].size > MAX_FILE_SIZE) {
+            throw new Error(`File ${files[i].name} terlalu besar. Maksimal 50MB`);
+          }
+        }
+
         if (files.length === 1) {
           await libClient.fileUpload(files[0], parentId, () => {
             reloadDir(Math.random());
@@ -156,8 +168,11 @@ export default function DirPage({ params }: { params: { id: string } }) {
         return;
       }
 
-      // Jika data berupa HTML gambar
+      // Penanganan drag & drop gambar
       const imageHtml = e.dataTransfer.getData("text/html");
+      if (!imageHtml) {
+        throw new Error("Format file tidak didukung");
+      }
 
       // Gunakan DOMParser untuk mengambil element gambar
       const parser = new DOMParser();
@@ -218,10 +233,11 @@ export default function DirPage({ params }: { params: { id: string } }) {
         }
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengunggah file';
+      alert(message);
       clientLogger.error("Error upload file:", error);
     } finally {
       newFileLoadingState.set(false);
-      // setLoading(false);
     }
   };
 
@@ -240,6 +256,13 @@ export default function DirPage({ params }: { params: { id: string } }) {
   return (
     <Stack p="md">
       <Navbar dirVal={dirVal} />
+      
+      {error && (
+        <Alert color="red" title="Error">
+          {error}
+        </Alert>
+      )}
+
       <Flex>
         <Stack
           w={300}
@@ -293,7 +316,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
                 setSelectedId={setSelectId}
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
-                //   reload={loadDir}
+                reloadDir={() => reloadDir(Math.random())}
               />
             ))}
             {newFileLoadingState.value && (
@@ -374,7 +397,7 @@ function Navbar({ dirVal }: { dirVal: Dir | undefined }) {
       </Group>
       {/* <Group>{loading && <Loader size={"xs"} variant={"dots"} />}</Group> */}
       <Group>
-        <UploadButton parentId={dirVal?.id || null} />
+        <UploadButton parentId={dirVal?.id || null} variant="button" />
         <DirSearch />
       </Group>
     </Flex>
@@ -395,48 +418,45 @@ function UploadButton({
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
   async function onUpload(files: File[] | null) {
     try {
-      newFileLoadingState.set(true);
+      if (!files?.length) {
+        throw new Error("Tidak ada file yang dipilih");
+      }
+
       if (!parentId) {
-        alert("tidak bisa upload file ke root");
-        clientLogger.error("tidak bisa upload file ke root");
-        return;
+        throw new Error("Tidak bisa upload file ke root direktori"); 
       }
 
-      if (!files || files.length === 0) {
-        alert("tidak ada file yang dipilih");
-        clientLogger.error("tidak ada file yang dipilih");
-        return;
-      }
+      newFileLoadingState.set(true);
 
-      if (files.length > 0) {
-        if (files.length === 1) {
-          await libClient.fileUpload(files[0], parentId!, () => {
-            // dirState.set(gState.random());
-            reloadDir(Math.random());
-          });
-          return;
+      // Validasi ukuran file
+      const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+      files.forEach(file => {
+        if (file.size > MAX_FILE_SIZE) {
+          throw new Error(`File ${file.name} terlalu besar. Maksimal 50MB`);
         }
+      });
 
-        const dataTransfer = new DataTransfer();
-
-        files.forEach((file) => {
-          dataTransfer.items.add(file);
+      if (files.length === 1) {
+        await libClient.fileUpload(files[0], parentId, () => {
+          reloadDir(Math.random());
         });
-
-        await libClient.fileUploadMultiple(
-          dataTransfer.files,
-          parentId!,
-          () => {
-            // dirState.set(gState.random());
-            reloadDir(Math.random());
-          }
-        );
         return;
       }
+
+      const dataTransfer = new DataTransfer();
+      files.forEach((file) => {
+        dataTransfer.items.add(file);
+      });
+
+      await libClient.fileUploadMultiple(dataTransfer.files, parentId, () => {
+        reloadDir(Math.random());
+      });
+
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Gagal mengunggah file';
+      alert(message);
       clientLogger.error("Error upload:", error);
     } finally {
-      // dirState.set(gState.random());
       reloadDir(Math.random());
       newFileLoadingState.set(false);
     }

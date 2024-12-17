@@ -1,0 +1,64 @@
+{
+  "apps": [
+    {
+      "name": "wibu-storage-3110",
+      "script": "bun",
+      "args": "next start -p 3110",
+      "cwd": "/root/projects/wibu-storage",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "exec_mode": "fork",
+      "max_memory_restart": "3G",
+      "autorestart": true,
+      "error_file": "/root/logs/wibu-storage_error.log",
+      "out_file": "/root/logs/wibu-storage_out.log",
+      "merge_logs": true
+    },
+    {
+      "name": "wibu-storage-3111",
+      "script": "bun",
+      "args": "next start -p 3111",
+      "cwd": "/root/projects/wibu-storage",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "exec_mode": "fork",
+      "max_memory_restart": "3G",
+      "autorestart": true,
+      "error_file": "/root/logs/wibu-storage_error.log",
+      "out_file": "/root/logs/wibu-storage_out.log",
+      "merge_logs": true
+    },
+    {
+      "name": "wibu-storage-3112",
+      "script": "bun",
+      "args": "next start -p 3112",
+      "cwd": "/root/projects/wibu-storage",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "exec_mode": "fork",
+      "max_memory_restart": "3G",
+      "autorestart": true,
+      "error_file": "/root/logs/wibu-storage_error.log",
+      "out_file": "/root/logs/wibu-storage_out.log",
+      "merge_logs": true
+    },
+    {
+      "name": "wibu-storage-3113",
+      "script": "bun",
+      "args": "next start -p 3113",
+      "cwd": "/root/projects/wibu-storage",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "exec_mode": "fork",
+      "max_memory_restart": "3G",
+      "autorestart": true,
+      "error_file": "/root/logs/wibu-storage_error.log",
+      "out_file": "/root/logs/wibu-storage_out.log",
+      "merge_logs": true
+    }
+  ]
+}
