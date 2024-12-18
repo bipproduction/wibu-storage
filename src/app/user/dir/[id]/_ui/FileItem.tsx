@@ -15,7 +15,7 @@ import {
   Alert
 } from "@mantine/core";
 import { Prisma } from "@prisma/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { FaFile } from "react-icons/fa";
 import {
   MdDelete,
@@ -48,25 +48,35 @@ const validateFileName = (name: string) => {
   return true;
 };
 
-export function FileItem({
+interface FileItemProps {
+  file: Prisma.FilesGetPayload<{
+    select: { id: true; name: true; ext: true; mime: true };
+  }>;
+  width: number;
+  selectedId: string;
+  setSelectedId: (v: string) => void;
+  contextMenu: string;
+  setContextMenu: (v: string) => void;
+  reloadDir: () => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  selectedItemsCount?: number;
+  onDeleteSelected?: () => void;
+}
+
+export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
   file,
   width,
   selectedId,
   setSelectedId,
   contextMenu,
   setContextMenu,
-  reloadDir
-}: {
-    file: Prisma.FilesGetPayload<{
-      select: { id: true; name: true; ext: true; mime: true };
-    }>;
-    width: number;
-    selectedId: string;
-    setSelectedId: (v: string) => void;
-    contextMenu: string;
-    setContextMenu: (v: string) => void;
-    reloadDir: () => void;
-  }) {
+  reloadDir,
+  isSelected,
+  onSelect,
+  selectedItemsCount,
+  onDeleteSelected
+}, ref) => {
   const [isRename, setIsRename] = useState(false);
   const [renameValue, setRenameValue] = useState<string>(file.name);
   const [error, setError] = useState<string | null>(null);
@@ -224,12 +234,17 @@ export function FileItem({
       <Menu opened={contextMenu === file.id}>
         <Menu.Target>
           <Paper
+            ref={ref}
             pos={"relative"}
             w={width}
             key={file.id}
             onContextMenu={onContextMenu}
             onClick={() => onClick(file.id)}
             onDoubleClick={() => onDoubleClick(file.id)}
+            style={{
+              border: isSelected ? '2px solid var(--mantine-color-blue-5)' : 'none',
+              transition: 'border 0.15s ease'
+            }}
           >
             <Stack gap={"xs"} align={"center"} justify={"end"}>
               <Box
@@ -341,11 +356,25 @@ export function FileItem({
           >
             Download
           </Menu.Item>
+
+          {/* Tambahkan menu delete many */}
+          {selectedItemsCount && selectedItemsCount > 0 && (
+            <>
+              <Menu.Divider />
+              <Menu.Item
+                onClick={onDeleteSelected}
+                leftSection={<MdDelete size={14} />}
+                color="red"
+              >
+                Delete Selected ({selectedItemsCount})
+              </Menu.Item>
+            </>
+          )}
         </Menu.Dropdown>
       </Menu>
     </Stack>
   );
-}
+});
 
 function DisplayImage({ file }: { file: Record<string, any> }) {
   const [loading, setLoading] = useState(true);

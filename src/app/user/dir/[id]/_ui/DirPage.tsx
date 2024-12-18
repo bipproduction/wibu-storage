@@ -1,39 +1,36 @@
 "use client";
 
+import { gState } from "@/lib/gatate";
 import { libClient } from "@/lib/lib_client";
 import { apies, pages } from "@/lib/routes";
+import { DirId } from "@/lib/static_value";
 import { Token } from "@/lib/token";
+import { clientLogger } from "@/util/client-logger";
+import { useHookstate } from "@hookstate/core";
 import {
   ActionIcon,
+  Alert,
   Box,
   Button,
-  Center,
   FileButton,
   Flex,
   Group,
-  Image,
-  Loader,
   Menu,
   Stack,
   Text,
   TextInput,
   Tooltip,
-  UnstyledButton,
-  Alert
+  UnstyledButton
 } from "@mantine/core";
 import { useLocalStorage, useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { FaX } from "react-icons/fa6";
 import { MdArrowForwardIos, MdHome, MdSearch, MdUpload } from "react-icons/md";
 import { FileItem } from "./FileItem";
 import { FolderItem } from "./FolderItem";
-import { useHookstate } from "@hookstate/core";
-import { gState } from "@/lib/gatate";
-import { DirId } from "@/lib/static_value";
-import { FaX } from "react-icons/fa6";
 import { TreePage } from "./TreePage";
-import { clientLogger } from "@/util/client-logger";
 
 type Dir = {} & Prisma.DirGetPayload<{
   select: {
@@ -66,6 +63,11 @@ export default function DirPage({ params }: { params: { id: string } }) {
   const newFileLoadingState = useHookstate(gState.newFileLoadingState);
   // const dirState = useHookstate(gState.dirState);
   const [error, setError] = useState<string | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragEndPos, setDragEndPos] = useState({ x: 0, y: 0 });
+  const itemPositionsRef = useRef(new Map<string, DOMRect>());
 
   useShallowEffect(() => {
     loadDir();
@@ -75,13 +77,13 @@ export default function DirPage({ params }: { params: { id: string } }) {
   const loadDir = async () => {
     try {
       setError(null); // Reset error state
-      
+
       const res = await fetch(
         apies["/api/dir/[id]/list"]({ id: parentId as string }),
         {
           method: "GET",
           headers: {
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
             Authorization: `Bearer ${Token.value}`
           }
         }
@@ -145,7 +147,7 @@ export default function DirPage({ params }: { params: { id: string } }) {
       e.stopPropagation();
 
       const files = e.dataTransfer.files;
-      
+
       if (files.length > 0) {
         // Validasi ukuran file
         const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -253,10 +255,83 @@ export default function DirPage({ params }: { params: { id: string } }) {
     });
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 0) { // Left click only
+      e.preventDefault(); // Prevent text selection
+      setIsDragging(true);
+      setDragStartPos({ x: e.clientX, y: e.clientY });
+      setDragEndPos({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      const newEndPos = { x: e.clientX, y: e.clientY };
+      setDragEndPos(newEndPos);
+
+      const selectionArea = {
+        left: Math.min(dragStartPos.x, newEndPos.x),
+        right: Math.max(dragStartPos.x, newEndPos.x),
+        top: Math.min(dragStartPos.y, newEndPos.y),
+        bottom: Math.max(dragStartPos.y, newEndPos.y)
+      };
+
+      const newSelected = new Set<string>();
+      itemPositionsRef.current.forEach((rect, id) => {
+        if (
+          rect.left < selectionArea.right &&
+          rect.right > selectionArea.left &&
+          rect.top < selectionArea.bottom &&
+          rect.bottom > selectionArea.top
+        ) {
+          newSelected.add(id);
+        }
+      });
+
+      setSelectedItems(newSelected);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItems.size === 0) return;
+
+    const confirmed = window.confirm(`Hapus ${selectedItems.size} item yang dipilih?`);
+    if (!confirmed) return;
+
+    try {
+      for (const id of Array.from(selectedItems)) {
+        const isFile = listFile.some(file => file.id === id);
+        if (isFile) {
+          await libClient.fileDelete(id, () => { });
+        } else {
+          await libClient.dirDelete(id, () => { });
+        }
+      }
+
+      setSelectedItems(new Set());
+      reloadDir(Math.random());
+      alert("Items berhasil dihapus");
+    } catch (error) {
+      alert("Gagal menghapus beberapa item");
+      clientLogger.error("Error deleting items:", error);
+    }
+  };
+
+  const updateItemPosition = useCallback((id: string, element: HTMLElement | null) => {
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      itemPositionsRef.current.set(id, rect);
+    }
+  }, []);
+
   return (
     <Stack p="md">
       <Navbar dirVal={dirVal} />
-      
+
       {error && (
         <Alert color="red" title="Error">
           {error}
@@ -274,6 +349,10 @@ export default function DirPage({ params }: { params: { id: string } }) {
         </Stack>
         <Stack
           flex={1}
+          pos="relative"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -281,7 +360,6 @@ export default function DirPage({ params }: { params: { id: string } }) {
           onDrop={onDrop}
           onDropCapture={onDropCapture}
           onClick={rootClick}
-          // pos={"relative"}
           onContextMenu={onContextMenu}
           p="md"
           h={"100vh"}
@@ -289,9 +367,42 @@ export default function DirPage({ params }: { params: { id: string } }) {
           style={{
             border: "0.5px solid gray",
             borderRadius: "4px",
-            overflowY: "auto"
+            overflowY: "auto",
+            userSelect: "none"
           }}
         >
+          {isDragging && (
+            <Box
+              pos="fixed"
+              style={{
+                left: Math.min(dragStartPos.x, dragEndPos.x),
+                top: Math.min(dragStartPos.y, dragEndPos.y),
+                width: Math.abs(dragEndPos.x - dragStartPos.x),
+                height: Math.abs(dragEndPos.y - dragStartPos.y),
+                border: '1px solid var(--mantine-color-blue-5)',
+                backgroundColor: 'rgba(51, 122, 183, 0.1)',
+                pointerEvents: 'none',
+                zIndex: 1000
+              }}
+            />
+          )}
+
+          {showRootMenu && (
+            <Menu opened={true} position="bottom-start">
+              <Menu.Dropdown>
+                <Menu.Item onClick={onCreateNewFolder}>New Folder</Menu.Item>
+                {selectedItems.size > 0 && (
+                  <Menu.Item
+                    onClick={handleDeleteSelected}
+                    color="red"
+                  >
+                    Delete Selected ({selectedItems.size})
+                  </Menu.Item>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+          )}
+
           <Flex gap="md" wrap="wrap">
             {listDir?.map((dir) => (
               <FolderItem
@@ -303,13 +414,24 @@ export default function DirPage({ params }: { params: { id: string } }) {
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
                 parentId={parentId}
+                isSelected={selectedItems.has(dir.id)}
+                onSelect={() => {
+                  const newSelected = new Set(selectedItems);
+                  if (newSelected.has(dir.id)) {
+                    newSelected.delete(dir.id);
+                  } else {
+                    newSelected.add(dir.id);
+                  }
+                  setSelectedItems(newSelected);
+                }}
+                ref={(el) => el && updateItemPosition(dir.id, el)}
+                selectedItemsCount={selectedItems.size}
+                onDeleteSelected={handleDeleteSelected}
               />
             ))}
-          </Flex>
-          <Flex wrap={"wrap"} gap={"md"}>
-            {listFile?.map((file, k) => (
+            {listFile?.map((file) => (
               <FileItem
-                key={k}
+                key={file.id}
                 file={file}
                 width={width}
                 selectedId={selectId}
@@ -317,51 +439,26 @@ export default function DirPage({ params }: { params: { id: string } }) {
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
                 reloadDir={() => reloadDir(Math.random())}
+                isSelected={selectedItems.has(file.id)}
+                onSelect={() => {
+                  const newSelected = new Set(selectedItems);
+                  if (newSelected.has(file.id)) {
+                    newSelected.delete(file.id);
+                  } else {
+                    newSelected.add(file.id);
+                  }
+                  setSelectedItems(newSelected);
+                }}
+                ref={(el) => el && updateItemPosition(file.id, el)}
+                selectedItemsCount={selectedItems.size}
+                onDeleteSelected={handleDeleteSelected}
               />
             ))}
-            {newFileLoadingState.value && (
-              <Center
-                bg={"gray"}
-                style={{
-                  borderRadius: 8
-                }}
-                w={width}
-                h={66}
-              >
-                <Loader size={"xs"} variant={"dots"} />
-              </Center>
-            )}
           </Flex>
-          <Box
-            pos={"absolute"}
-            top={(showRootMenu?.y ?? 0) + 100}
-            left={showRootMenu?.x}
-          >
-            <Menu
-              opened={true}
-              position="left-start"
-              styles={{
-                dropdown: {
-                  display: showRootMenu ? "block" : "none"
-                }
-              }}
-            >
-              <Menu.Target>
-                <div
-                  style={{
-                    width: 0,
-                    height: 0
-                  }}
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={onCreateNewFolder}>new folder</Menu.Item>
-                <UploadButton parentId={parentId} variant="button" />
-              </Menu.Dropdown>
-            </Menu>
-          </Box>
         </Stack>
       </Flex>
+
+      <SelectionInfo count={selectedItems.size} />
     </Stack>
   );
 }
@@ -423,7 +520,7 @@ function UploadButton({
       }
 
       if (!parentId) {
-        throw new Error("Tidak bisa upload file ke root direktori"); 
+        throw new Error("Tidak bisa upload file ke root direktori");
       }
 
       newFileLoadingState.set(true);
@@ -531,5 +628,27 @@ function DirSearch() {
         leftSection={<MdSearch />}
       />
     </Stack>
+  );
+}
+
+function SelectionInfo({ count }: { count: number }) {
+  if (count === 0) return null;
+
+  return (
+    <Box
+      pos="fixed"
+      bottom={20}
+      right={20}
+      p="xs"
+      style={{
+        backgroundColor: 'var(--mantine-color-blue-7)',
+        borderRadius: '4px',
+        color: 'white',
+        zIndex: 1000,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+      }}
+    >
+      {count} item dipilih
+    </Box>
   );
 }

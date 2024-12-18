@@ -14,6 +14,11 @@
             "date": 1734435929161,
             "name": "logs/backend/error-2024-12-17.log",
             "hash": "ccddc08d97072b019be07a977e1bc85fc21d52f70b393df8583587f1a5115dbe"
+        },
+        {
+            "date": 1734451363279,
+            "name": "logs/backend/error-2024-12-18.log",
+            "hash": "a5a3765e9e6fda3514b3edd5b8b4b841479103f7a0bb2fbbb43ea07b0bfc45cc"
         }
     ],
     "hashType": "sha256"

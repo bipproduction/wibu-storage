@@ -3,12 +3,28 @@ import { pages } from "@/lib/routes";
 import { Box, Menu, Paper, Stack, Text, TextInput, Alert } from "@mantine/core";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { MdDelete, MdEdit, MdFolder, MdOpenInNew } from "react-icons/md";
 import { useHookstate } from "@hookstate/core";
 import { gState } from "@/lib/gatate";
 import { useRouter } from "next/navigation";
 import { clientLogger } from "@/util/client-logger";
+
+interface FolderItemProps {
+  dir: Prisma.DirGetPayload<{
+    select: { id: true; name: true; parentId: true; userId: true };
+  }>;
+  width: number;
+  selectedId: string;
+  setSelectedId: (v: string) => void;
+  contextMenu: string;
+  setContextMenu: (v: string) => void;
+  parentId: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  selectedItemsCount?: number;
+  onDeleteSelected?: () => void;
+}
 
 // Validasi nama folder
 const validateFolderName = (name: string) => {
@@ -30,25 +46,19 @@ const validateFolderName = (name: string) => {
   return true;
 };
 
-export function FolderItem({
+export const FolderItem = forwardRef<HTMLDivElement, FolderItemProps>(({
   dir,
   width,
   selectedId,
   setSelectedId,
   contextMenu,
   setContextMenu,
-  parentId
-}: {
-  dir: Prisma.DirGetPayload<{
-    select: { id: true; name: true; parentId: true; userId: true };
-  }>;
-  width: number;
-  selectedId: string;
-  setSelectedId: (v: string) => void;
-  contextMenu: string;
-  setContextMenu: (v: string) => void;
-  parentId: string;
-}) {
+  parentId,
+  isSelected,
+  onSelect,
+  selectedItemsCount,
+  onDeleteSelected
+}, ref) => {
   const router = useRouter();
   const [isRename, setIsRename] = useState(false);
   const [renameValue, setRenameValue] = useState(dir.name);
@@ -186,11 +196,16 @@ export function FolderItem({
     <Menu opened={contextMenu === dir.id}>
       <Menu.Target>
         <Paper
+          ref={ref}
           w={width}
           key={dir.id}
           onContextMenu={onContextMenu}
           onClick={onClick}
           onDoubleClick={onDoubleClick}
+          style={{
+            border: isSelected ? '2px solid var(--mantine-color-blue-5)' : 'none',
+            transition: 'border 0.15s ease'
+          }}
         >
           <Stack gap={"xs"} align="center" justify="end">
             {error && (
@@ -276,7 +291,20 @@ export function FolderItem({
         <Menu.Item onClick={onDelete} leftSection={<MdDelete size={14} />}>
           delete
         </Menu.Item>
+        
+        {selectedItemsCount && selectedItemsCount > 0 && (
+          <>
+            <Menu.Divider />
+            <Menu.Item
+              onClick={onDeleteSelected}
+              leftSection={<MdDelete size={14} />}
+              color="red"
+            >
+              Delete Selected ({selectedItemsCount})
+            </Menu.Item>
+          </>
+        )}
       </Menu.Dropdown>
     </Menu>
   );
-}
+});
