@@ -4,6 +4,9 @@ import fs from "fs/promises";
 import path from "path";
 import sharp from "sharp";
 
+const uploadPath = process.env.UPLOAD_PATH!;
+
+console.log(uploadPath);
 const listImageMimeType = [
   "image/png",
   "image/jpeg",
@@ -53,7 +56,7 @@ export async function GET(
       throw new Error("Invalid file path");
     }
 
-    const filePath = path.join(process.cwd(), "uploads", fileData.path);
+    const filePath = path.join(uploadPath, fileData.path);
     const mimeType = fileData.mime || "application/octet-stream";
 
     // Baca file
@@ -129,7 +132,7 @@ export async function GET(
       });
     }
 
-    return new Response(message, { 
+    return new Response(message, {
       status: 500,
       headers: {
         "Content-Type": "text/plain",

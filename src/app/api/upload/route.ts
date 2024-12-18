@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import backendLogger from "@/util/backend-logger";
 import fs from "fs/promises";
 import path from "path";
-// const root = path.join(process.cwd(), "uploads");
+
 
 // Batas ukuran file dalam byte (100 MB)
 const MAX_FILE_SIZE = 100 * 1024 * 1024;

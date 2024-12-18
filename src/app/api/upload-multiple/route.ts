@@ -2,7 +2,7 @@ import { filePathGenerate, listMimeTypes, verifyUserToken } from "@/lib/lib_serv
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
-const root = path.join(process.cwd(), "uploads");
+const uploadPath = process.env.UPLOAD_PATH!;  
 
 // Batas ukuran file dalam byte (100 MB)
 const MAX_FILE_SIZE = 100 * 1024 * 1024;

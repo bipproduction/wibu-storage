@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import path from "path";
 import fs from "fs/promises";
-const root = path.join(process.cwd(), "uploads");
+const root = process.env.UPLOAD_PATH!;
 
 export async function DELETE(
   req: Request,
