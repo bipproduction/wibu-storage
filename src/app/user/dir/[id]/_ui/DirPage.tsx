@@ -150,10 +150,10 @@ export default function DirPage({ params }: { params: { id: string } }) {
 
       if (files.length > 0) {
         // Validasi ukuran file
-        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+        const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
         for (let i = 0; i < files.length; i++) {
           if (files[i].size > MAX_FILE_SIZE) {
-            throw new Error(`File ${files[i].name} terlalu besar. Maksimal 50MB`);
+            throw new Error(`File ${files[i].name} terlalu besar. Maksimal 100MB`);
           }
         }
 
@@ -526,10 +526,10 @@ function UploadButton({
       newFileLoadingState.set(true);
 
       // Validasi ukuran file
-      const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+      const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
       files.forEach(file => {
         if (file.size > MAX_FILE_SIZE) {
-          throw new Error(`File ${file.name} terlalu besar. Maksimal 50MB`);
+          throw new Error(`File ${file.name} terlalu besar. Maksimal 100MB`);
         }
       });
 

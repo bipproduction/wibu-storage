@@ -29,11 +29,13 @@ async function checkDependencies() {
 }
 
 // Tambah konstanta
-const MAX_PDF_SIZE_MB = 50;
+const MAX_PDF_SIZE_MB =100;
 const MAX_IMAGE_DIMENSION = 2000;
 const CONVERSION_TIMEOUT_MS = 30000;
 const MAX_PAGES = 10; // Batasan jumlah halaman
 const DEFAULT_PAGE = 1;
+const MAX_PAGES_PER_REQUEST = 5; // Maksimal halaman per request
+const PAGE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB per halaman
 
 // Modifikasi validateParams
 function validateParams(pdfUrl: string | null, pages: number[]) {
@@ -54,6 +56,19 @@ interface ConversionResult {
   density: number;
   width: number;
   height: number;
+}
+
+// Tambah interface untuk response multiple pages
+interface MultiPageResponse {
+  pages: {
+    pageNumber: number;
+    imageUrl: string;
+    width: number;
+    height: number;
+  }[];
+  totalPages: number;
+  hasMore: boolean;
+  nextPage?: number;
 }
 
 // Fungsi untuk validasi dan fetch PDF
@@ -105,32 +120,63 @@ async function fetchPDF(url: string) {
 // Tambahkan error SVG template
 const errorImageSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f8d7da"/>
-  <circle cx="100" cy="75" r="40" fill="none" stroke="#dc3545" stroke-width="8"/>
-  <path d="M60,140 L140,140" stroke="#dc3545" stroke-width="8" stroke-linecap="round"/>
-  <text x="100" y="180" font-family="Arial" font-size="14" fill="#dc3545" text-anchor="middle">
-    PDF Conversion Failed
-  </text>
+    <defs>
+        <style>
+            .error-bg { fill: #f8d7da; }
+            .error-circle { fill: none; stroke: #dc3545; stroke-width: 8; }
+            .error-line { stroke: #dc3545; stroke-width: 8; stroke-linecap: round; }
+            .error-text { font-family: Arial; font-size: 14px; fill: #dc3545; text-anchor: middle; }
+        </style>
+    </defs>
+    <rect class="error-bg" width="200" height="200"/>
+    <circle class="error-circle" cx="100" cy="75" r="40"/>
+    <path class="error-line" d="M60,140 L140,140"/>
+    <text class="error-text" x="100" y="180">PDF Conversion Failed</text>
 </svg>`;
 
 // Tambahkan SVG untuk end of page
 const endOfPageSvg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#f8f9fa"/>
-  <text x="100" y="80" font-family="Arial" font-size="16" fill="#6c757d" text-anchor="middle">
-    End of PDF
-  </text>
-  <text x="100" y="110" font-family="Arial" font-size="14" fill="#6c757d" text-anchor="middle">
-    No more pages available
-  </text>
-  <path d="M70,140 L130,140" stroke="#6c757d" stroke-width="2" stroke-dasharray="4"/>
+    <defs>
+        <style>
+            .end-bg { fill: #f8f9fa; }
+            .end-text { font-family: Arial; fill: #6c757d; text-anchor: middle; }
+            .end-text-large { font-size: 16px; }
+            .end-text-small { font-size: 14px; }
+            .end-line { stroke: #6c757d; stroke-width: 2; stroke-dasharray: 4; }
+        </style>
+    </defs>
+    <rect class="end-bg" width="200" height="200"/>
+    <text class="end-text end-text-large" x="100" y="80">End of PDF</text>
+    <text class="end-text end-text-small" x="100" y="110">No more pages available</text>
+    <path class="end-line" d="M70,140 L130,140"/>
 </svg>`;
+
+// Tambahkan fungsi untuk get inline CSS header
+function getInlineCSSHeader() {
+    return `
+        .error-bg { fill: #f8d7da; }
+        .error-circle { fill: none; stroke: #dc3545; stroke-width: 8; }
+        .error-line { stroke: #dc3545; stroke-width: 8; stroke-linecap: round; }
+        .error-text { font-family: Arial; font-size: 14px; fill: #dc3545; text-anchor: middle; }
+        .end-bg { fill: #f8f9fa; }
+        .end-text { font-family: Arial; fill: #6c757d; text-anchor: middle; }
+        .end-text-large { font-size: 16px; }
+        .end-text-small { font-size: 14px; }
+        .end-line { stroke: #6c757d; stroke-width: 2; stroke-dasharray: 4; }
+    `.replace(/\s+/g, ' ').trim();
+}
 
 // Fungsi helper untuk set common headers
 function setCommonHeaders(headers: Headers) {
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob:;");
+    headers.set('Content-Security-Policy', `
+        default-src 'self';
+        img-src 'self' data: blob:;
+        style-src 'self' 'unsafe-inline';
+        font-src 'self';
+    `.replace(/\s+/g, ' ').trim());
     headers.set('X-Content-Type-Options', 'nosniff');
 }
 
@@ -140,7 +186,8 @@ function returnErrorImage(message: string = 'Conversion failed') {
         headers: {
             'Content-Type': 'image/svg+xml',
             'Cache-Control': 'no-store',
-            'X-Error-Message': message
+            'X-Error-Message': message,
+            'X-CSS-Styles': getInlineCSSHeader()
         }
     });
     setCommonHeaders(response.headers);
@@ -153,7 +200,8 @@ function returnEndOfPageImage() {
         headers: {
             'Content-Type': 'image/svg+xml',
             'Cache-Control': 'public, max-age=31536000',
-            'X-Error-Message': 'End of PDF pages'
+            'X-Error-Message': 'End of PDF pages',
+            'X-CSS-Styles': getInlineCSSHeader()
         }
     });
     setCommonHeaders(response.headers);
@@ -171,113 +219,189 @@ async function getPDFPageCount(buffer: Buffer): Promise<number> {
     }
 }
 
+// Tambahkan fungsi untuk membersihkan memory
+async function cleanupResources(pdfBuffer: Buffer | null) {
+    try {
+        if (pdfBuffer) {
+            pdfBuffer = null;
+        }
+        if (typeof global.gc === 'function') {
+            global.gc(); // Panggil garbage collector jika tersedia
+        }
+    } catch (error) {
+        console.warn('Gagal membersihkan resources:', error);
+    }
+}
+
+function validatePdfUrl(url: string): boolean {
+    try {
+        const parsedUrl = new URL(url);
+        // Whitelist domain yang diizinkan
+        const allowedDomains = ['example.com', 'trusted-domain.com'];
+        const domain = parsedUrl.hostname;
+        
+        return (
+            allowedDomains.some(allowed => domain.endsWith(allowed)) &&
+            parsedUrl.protocol.startsWith('https') &&
+            url.toLowerCase().endsWith('.pdf')
+        );
+    } catch {
+        return false;
+    }
+}
+
+async function fetchWithRetry(url: string, maxRetries = 3) {
+    let lastError;
+    
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(url);
+            if (response.ok) return response;
+        } catch (error) {
+            lastError = error;
+            // Tunggu sebentar sebelum retry
+            await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+        }
+    }
+    
+    throw lastError;
+}
+
+interface ConversionMetrics {
+    startTime: number;
+    endTime: number;
+    pdfSize: number;
+    pageCount: number;
+    success: boolean;
+}
+
+function logMetrics(metrics: ConversionMetrics) {
+    const duration = metrics.endTime - metrics.startTime;
+    console.log({
+        type: 'pdf_conversion_metrics',
+        duration_ms: duration,
+        pdf_size_mb: metrics.pdfSize / (1024 * 1024),
+        page_count: metrics.pageCount,
+        success: metrics.success,
+        timestamp: new Date().toISOString()
+    });
+}
+
+// Tambahkan batasan ukuran chunk saat streaming PDF
+const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
+
+async function streamPdfContent(response: Response): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    let totalSize = 0;
+    
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('Cannot read response body');
+    
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        
+        totalSize += value.length;
+        if (totalSize > MAX_PDF_SIZE_MB * 1024 * 1024) {
+            throw new PDFConversionError('PDF terlalu besar');
+        }
+        
+        chunks.push(Buffer.from(value));
+    }
+    
+    return Buffer.concat(chunks);
+}
+
 export async function GET(request: Request) {
-    let pdfBuffer: Buffer | null = null;
     const { searchParams } = new URL(request.url);
+    const pdfUrl = searchParams.get('url');
+    let pages: number[] = [];
+    
+    // Jika parameter pages ada, gunakan itu. Jika tidak, set ke null untuk menandakan semua halaman
+    const pagesParam = searchParams.get('pages');
+    if (pagesParam) {
+        pages = pagesParam.split(',').map(p => parseInt(p.trim())).filter(p => !isNaN(p));
+    }
     
     try {
-        // Validasi parameter wajib
-        const pdfUrl = searchParams.get('url');
-        if (!pdfUrl) {
-            return NextResponse.json({ 
-                error: 'URL parameter wajib diisi' 
-            }, { status: 400 });
-        }
-
-        // Decode URL jika perlu
-        const decodedUrl = decodeURIComponent(pdfUrl);
-        
         await checkDependencies();
-
-        const getTotalPages = searchParams.get('total') === 'true';
+        validateParams(pdfUrl, pages);
         
-        // Single fetch PDF dengan URL yang sudah di-decode
-        const pdfResponse = await fetchPDF(decodedUrl);
-
-        const arrayBuffer = await pdfResponse.arrayBuffer();
-        pdfBuffer = Buffer.from(arrayBuffer);
+        const pdfResponse = await fetchPDF(pdfUrl!);
+        const pdfBuffer = await streamPdfContent(pdfResponse);
         
-        // Get total pages
-        if (getTotalPages) {
-            try {
-                const pageCount = await getPDFPageCount(pdfBuffer);
-                return Response.json({
-                    totalPages: pageCount,
-                    message: 'Success get total pages'
-                });
-            } catch (error) {
-                console.error('PDF parse error:', error);
-                return Response.json({ 
-                    error: 'Gagal membaca total halaman PDF',
-                    totalPages: 0
-                }, { status: 500 });
-            }
+        // Dapatkan total halaman PDF
+        const totalPages = await getPDFPageCount(pdfBuffer);
+        
+        // Jika pages kosong (tidak ada parameter pages), generate array untuk semua halaman
+        if (pages.length === 0) {
+            pages = Array.from({length: totalPages}, (_, i) => i + 1);
         }
-
-        // Parse page parameter dengan lebih baik
-        const pageStr = searchParams.get('page');
-        let pageNum = 1; // Default ke halaman 1
-
-        if (pageStr) {
-            pageNum = parseInt(pageStr);
-            if (isNaN(pageNum) || pageNum < 1) {
-                return returnErrorImage('Invalid page number');
-            }
-
-            // Validasi halaman tidak melebihi total
-            const totalPages = await getPDFPageCount(pdfBuffer);
-            if (pageNum > totalPages) {
-                return returnEndOfPageImage();
-            }
+        
+        // Batasi jumlah halaman sesuai MAX_PAGES
+        if (pages.length > MAX_PAGES) {
+            pages = pages.slice(0, MAX_PAGES);
         }
-
+        
+        // Konversi PDF ke gambar
         const options = {
+            responseType: "buffer" as const,
             density: 300,
+            saveFilename: "untitled",
             format: "png",
-            width: Math.min(1200, MAX_IMAGE_DIMENSION),
-            height: Math.min(1700, MAX_IMAGE_DIMENSION),
-            preserveAspectRatio: true,
-            saveFilename: "",
-            savePath: "",
-            returnBuffer: true
+            width: MAX_IMAGE_DIMENSION,
+            height: MAX_IMAGE_DIMENSION
         };
-
-        // Konversi single page
-        const convert = fromBuffer(pdfBuffer, options);
-        const result = await Promise.race([
-            convert(pageNum, { responseType: "buffer" }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new PDFConversionError('Konversi timeout', 504)), 
-                CONVERSION_TIMEOUT_MS)
-            )
-        ]) as ConversionResult;
-
-        if (!result?.buffer) {
-            return returnErrorImage('Konversi gagal: tidak ada output');
-        }
-
-        // Return image buffer
-        const response = new NextResponse(result.buffer, {
+        
+        const convert = fromBuffer(pdfBuffer);
+        const results = await Promise.all(
+            pages.map(async (pageNumber) => {
+                try {
+                    if (pageNumber > totalPages) {
+                        return null;
+                    }
+                    return await convert(pageNumber, options);
+                } catch (error) {
+                    console.error(`Error converting page ${pageNumber}:`, error);
+                    return null;
+                }
+            })
+        );
+        
+        // Filter hasil yang null dan format response
+        const validResults = results.filter((r): r is ConversionResult => r !== null);
+        const response: MultiPageResponse = {
+            pages: validResults.map((result, index) => ({
+                pageNumber: pages[index],
+                imageUrl: `data:image/png;base64,${result.buffer.toString('base64')}`,
+                width: result.width,
+                height: result.height
+            })),
+            totalPages,
+            hasMore: Math.max(...pages) < totalPages,
+            nextPage: Math.max(...pages) < totalPages ? Math.max(...pages) + 1 : undefined
+        };
+        
+        await cleanupResources(pdfBuffer);
+        
+        return NextResponse.json(response, {
             headers: {
-                'Content-Type': 'image/png',
-                'Content-Length': result.buffer.length.toString(),
-                'Cache-Control': 'public, max-age=31536000'
+                'Cache-Control': 'public, max-age=3600',
+                'Content-Type': 'application/json',
             }
         });
-        setCommonHeaders(response.headers);
-        return response;
-
+        
     } catch (error) {
         console.error('PDF conversion error:', error);
-        
-        // Return appropriate error response
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        const statusCode = error instanceof PDFConversionError ? error.statusCode : 500;
-
-        return !searchParams.get('pages') ?
-            returnErrorImage(errorMessage) :
-            NextResponse.json({ error: errorMessage }, { status: statusCode });
-    } finally {
-        pdfBuffer = null;
+        if (error instanceof PDFConversionError) {
+            return NextResponse.json(
+                { error: error.message },
+                { status: error.statusCode }
+            );
+        }
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500 }
+        );
     }
 }

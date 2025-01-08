@@ -35,15 +35,15 @@
   }
   
   .errorLog {
-    background-color: #fef2f2;
+    background-color: #333;
   }
   
   .warnLog {
-    background-color: #fefce8;
+    background-color: #333;
   }
   
   .infoLog {
-    background-color: #ffffff;
+    background-color: #333;
   }
   
   .logHeader {
@@ -86,7 +86,7 @@
   .metadata {
     margin-top: 8px;
     padding: 8px;
-    background-color: #f9fafb;
+    background-color: #222;
     border-radius: 4px;
     font-size: 14px;
     overflow-x: auto;

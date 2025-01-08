@@ -42,29 +42,6 @@ export const POST = (req: Request) =>
         return new Response("File is too large", { status: 400 });
       }
 
-      // const createdAt = moment().format("YYYY-MM-DD-HH-mm");
-      // const ext = path.extname(file.name);
-      // const baseFileName = _.kebabCase(path.basename(file.name, ext));
-      // let fileName = baseFileName + ext;
-      // let filePath = path.join(
-      //   root,
-      //   user.id,
-      //   createdAt.replace(/-/g, "/"),
-      //   fileName
-      // );
-
-      // // Periksa jika nama file sudah ada, tambahkan penanda unik
-      // let counter = 1;
-      // while (await fileExists(filePath)) {
-      //   fileName = `${baseFileName}-${counter}${ext}`;
-      //   filePath = path.join(
-      //     root,
-      //     user.id,
-      //     createdAt.replace(/-/g, "/"),
-      //     fileName
-      //   );
-      //   counter++;
-      // }
 
       const pathGenerate = await filePathGenerate(user.id, file.name);
 

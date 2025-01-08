@@ -308,3 +308,5 @@ export const FolderItem = forwardRef<HTMLDivElement, FolderItemProps>(({
     </Menu>
   );
 });
+
+FolderItem.displayName = 'FolderItem';

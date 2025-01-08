@@ -15,7 +15,7 @@ import {
   Alert
 } from "@mantine/core";
 import { Prisma } from "@prisma/client";
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef, useCallback } from "react";
 import { FaFile } from "react-icons/fa";
 import {
   MdDelete,
@@ -82,10 +82,9 @@ export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Tambahkan handler untuk keydown global
-  const handleKeyDown = async (e: KeyboardEvent) => {
+  // Bungkus handleKeyDown dengan useCallback
+  const handleKeyDown = useCallback(async (e: KeyboardEvent) => {
     try {
-      // Hanya proses jika file ini sedang dipilih
       if (selectedId !== file.id) return;
 
       if (e.key === 'Enter' && !isRename) {
@@ -93,14 +92,14 @@ export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
         setIsRename(true);
       } else if (e.key === 'Escape' && isRename) {
         setIsRename(false);
-        setRenameValue(file.name); // Reset ke nama asli
+        setRenameValue(file.name);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Terjadi kesalahan saat memproses keyboard";
       setError(message);
       clientLogger.error("Error handling keyboard:", error);
     }
-  };
+  }, [selectedId, isRename, file.id, file.name]);
 
   // Tambahkan dan hapus event listener
   useEffect(() => {
@@ -108,7 +107,7 @@ export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedId, isRename, file.name]);
+  }, [handleKeyDown]);
 
   // Modifikasi fungsi onClick untuk menangani single click
   function onClick(id: string) {
@@ -132,13 +131,42 @@ export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
   async function onDoubleClick(id: string) {
     try {
       setError(null);
-      const response = await fetch(apies["/api/files/[id]"]({ id }));
+      const fileUrl = apies["/api/files/[id]"]({ id });
       
-      if (!response.ok) {
-        throw new Error(`Gagal membuka file: ${response.statusText}`);
+      // Jika file adalah PDF, buka dengan object tag di tab baru
+      if (file.mime === 'application/pdf') {
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <title>${file.name}</title>
+                <style>
+                  body { margin: 0; }
+                  object { 
+                    width: 100vw; 
+                    height: 100vh; 
+                  }
+                </style>
+              </head>
+              <body>
+                <object
+                  data="${fileUrl}"
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                >
+                  <p>PDF tidak dapat ditampilkan. <a href="${fileUrl}">Download</a></p>
+                </object>
+              </body>
+            </html>
+          `);
+          return;
+        }
       }
       
-      window.open(apies["/api/files/[id]"]({ id }), "_blank");
+      // Untuk file lain, buka langsung
+      window.open(fileUrl, "_blank");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Gagal membuka file";
       setError(message);
@@ -375,6 +403,8 @@ export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
     </Stack>
   );
 });
+
+FileItem.displayName = 'FileItem';
 
 function DisplayImage({ file }: { file: Record<string, any> }) {
   const [loading, setLoading] = useState(true);

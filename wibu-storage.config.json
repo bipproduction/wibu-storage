@@ -60,5 +60,6 @@
       "out_file": "/root/logs/wibu-storage_out.log",
       "merge_logs": true
     }
-  ]
+  ],
+  "upload_path": "~/assets/wibu-storage/uploads"
 }
