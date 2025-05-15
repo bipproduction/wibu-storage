@@ -70,7 +70,7 @@ export const POST = (req: Request) =>
         const buffer = Buffer.from(await file.arrayBuffer());
 
         // Tulis file ke system
-        await fs.writeFile(pathGenerate.fullPath, buffer);
+        await fs.writeFile(pathGenerate.fullPath, buffer as any);
 
         listDataUpload.push(uploadFile);
       }

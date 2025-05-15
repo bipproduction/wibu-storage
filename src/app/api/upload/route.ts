@@ -67,7 +67,7 @@ export const POST = (req: Request) =>
       const buffer = Buffer.from(await file.arrayBuffer());
 
       // Tulis file ke system
-      await fs.writeFile(pathGenerate.fullPath, buffer);
+      await fs.writeFile(pathGenerate.fullPath, buffer as any);
 
       return new Response(
         JSON.stringify({
