@@ -8,6 +8,7 @@ export class Token {
     }
 }
 
+
 type UserType = {} & Prisma.UserGetPayload<{ select: { id: true, name: true, email: true } }>
 export class User {
     static value = {} as UserType

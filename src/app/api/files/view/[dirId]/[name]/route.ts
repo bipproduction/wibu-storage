@@ -13,6 +13,7 @@ const listImageMimeType = [
   "image/svg+xml"
 ];
 
+const uploadPath = process.env.UPLOAD_PATH!;
 export const GET = async (
   req: Request,
   { params }: { params: { dirId: string; name: string } }
@@ -34,7 +35,7 @@ export const GET = async (
     return new Response("File not found", { status: 404 });
   }
 
-  const filePath = path.join(process.cwd(), "uploads", fileData.path as string);
+  const filePath = path.join(uploadPath, fileData.path as string);
 
   try {
     const file = await fs.readFile(filePath);

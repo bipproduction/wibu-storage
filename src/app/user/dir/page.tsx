@@ -2,7 +2,7 @@
 
 import { apies, pages } from "@/lib/routes";
 import { Token } from "@/lib/token";
-import { Stack, Text, Box, Group, Button, ActionIcon } from "@mantine/core";
+import { Stack, Text, Box, Group, Button, ActionIcon, Title } from "@mantine/core";
 import { useShallowEffect } from "@mantine/hooks";
 import { Prisma } from "@prisma/client";
 import Link from "next/link";

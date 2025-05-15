@@ -1,7 +1,18 @@
 export const listMimeTypes = [
+  // Gambar
   "image/png",
   "image/jpeg",
+  "image/jpg",
   "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/bmp",
+  "image/tiff",
+  "image/x-icon",
+  "image/heic",
+  "image/heif",
+
+  // Dokumen
   "text/csv",
   "application/pdf",
   "application/msword",

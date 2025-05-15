@@ -6,6 +6,8 @@ import fs from "fs/promises";
 import backendLogger from "@/util/backend-logger";
 import { verifyUserToken } from "@/lib/lib_server";
 
+const uploadPath = process.env.UPLOAD_PATH!;
+
 export const DELETE = (
   req: Request,
   { params }: { params: { dirId: string; name: string } }
@@ -39,7 +41,7 @@ export const DELETE = (
         return new Response("Error deleting file", { status: 404 });
       }
 
-      const filePath = path.join(process.cwd(), "uploads", file.path as string);
+      const filePath = path.join(uploadPath, file.path as string);
       await fs.unlink(filePath);
 
       return new Response(JSON.stringify({ data: file }));

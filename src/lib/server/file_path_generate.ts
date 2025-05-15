@@ -2,8 +2,10 @@ import moment from "moment";
 import path from "path";
 import fs from "fs/promises";
 
+const uploadPath = process.env.UPLOAD_PATH!;
+
 export async function filePathGenerate(userId: string, name: string) {
-  const root = path.join(process.cwd(), "uploads");
+  const root = uploadPath;
   const createdAt = moment().format("YYYY/MM/DD");
   const ext = path.extname(name);
   const baseFileName = path.basename(name, ext);

@@ -11,10 +11,11 @@ import {
   Paper,
   Stack,
   Text,
-  TextInput
+  TextInput,
+  Alert
 } from "@mantine/core";
 import { Prisma } from "@prisma/client";
-import { useState } from "react";
+import { useState, useEffect, forwardRef, useCallback } from "react";
 import { FaFile } from "react-icons/fa";
 import {
   MdDelete,
@@ -26,15 +27,28 @@ import {
 } from "react-icons/md";
 
 const listExtImage = [".jpg", ".png", ".jpeg", ".webp", ".svg", ".gif", ".ico"];
-export function FileItem({
-  file,
-  width,
-  selectedId,
-  setSelectedId,
-  contextMenu,
-  setContextMenu
-}: // reload
-{
+
+// Tambahkan validasi nama file
+const validateFileName = (name: string) => {
+  if (!name.trim()) {
+    throw new Error("Nama file tidak boleh kosong");
+  }
+  
+  // Cek karakter yang tidak valid
+  const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
+  if (invalidChars.test(name)) {
+    throw new Error("Nama file mengandung karakter yang tidak valid");
+  }
+
+  // Maksimal panjang nama file
+  if (name.length > 255) {
+    throw new Error("Nama file terlalu panjang (maksimal 255 karakter)");
+  }
+
+  return true;
+};
+
+interface FileItemProps {
   file: Prisma.FilesGetPayload<{
     select: { id: true; name: true; ext: true; mime: true };
   }>;
@@ -43,19 +57,121 @@ export function FileItem({
   setSelectedId: (v: string) => void;
   contextMenu: string;
   setContextMenu: (v: string) => void;
-  // reload: () => void
-}) {
+  reloadDir: () => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  selectedItemsCount?: number;
+  onDeleteSelected?: () => void;
+}
+
+export const FileItem = forwardRef<HTMLDivElement, FileItemProps>(({
+  file,
+  width,
+  selectedId,
+  setSelectedId,
+  contextMenu,
+  setContextMenu,
+  reloadDir,
+  isSelected,
+  onSelect,
+  selectedItemsCount,
+  onDeleteSelected
+}, ref) => {
   const [isRename, setIsRename] = useState(false);
   const [renameValue, setRenameValue] = useState<string>(file.name);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  // Bungkus handleKeyDown dengan useCallback
+  const handleKeyDown = useCallback(async (e: KeyboardEvent) => {
+    try {
+      if (selectedId !== file.id) return;
+
+      if (e.key === 'Enter' && !isRename) {
+        e.preventDefault();
+        setIsRename(true);
+      } else if (e.key === 'Escape' && isRename) {
+        setIsRename(false);
+        setRenameValue(file.name);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan saat memproses keyboard";
+      setError(message);
+      clientLogger.error("Error handling keyboard:", error);
+    }
+  }, [selectedId, isRename, file.id, file.name]);
+
+  // Tambahkan dan hapus event listener
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Modifikasi fungsi onClick untuk menangani single click
   function onClick(id: string) {
-    setSelectedId(id);
-    setContextMenu(""); // Close context menu when another file is clicked
-    if (selectedId !== id) setIsRename(false);
+    try {
+      setError(null);
+      setSelectedId(id);
+      setContextMenu(""); 
+      
+      // Jika mengklik file yang berbeda, tutup mode rename
+      if (selectedId !== id) {
+        setIsRename(false);
+        setRenameValue(file.name);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+      setError(message);
+      clientLogger.error("Error onClick:", error);
+    }
   }
 
-  function onDoubleClick(id: string) {
-    window.open(apies["/api/files/[id]"]({ id }), "_blank");
+  async function onDoubleClick(id: string) {
+    try {
+      setError(null);
+      const fileUrl = apies["/api/files/[id]"]({ id });
+      
+      // Jika file adalah PDF, buka dengan object tag di tab baru
+      if (file.mime === 'application/pdf') {
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <title>${file.name}</title>
+                <style>
+                  body { margin: 0; }
+                  object { 
+                    width: 100vw; 
+                    height: 100vh; 
+                  }
+                </style>
+              </head>
+              <body>
+                <object
+                  data="${fileUrl}"
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                >
+                  <p>PDF tidak dapat ditampilkan. <a href="${fileUrl}">Download</a></p>
+                </object>
+              </body>
+            </html>
+          `);
+          return;
+        }
+      }
+      
+      // Untuk file lain, buka langsung
+      window.open(fileUrl, "_blank");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal membuka file";
+      setError(message);
+      clientLogger.error("Error opening file:", error);
+    }
   }
 
   function onContextMenu(e: React.MouseEvent) {
@@ -65,56 +181,98 @@ export function FileItem({
   }
 
   async function onRename() {
-    libClient.fileRename(renameValue, file.id, () => {
-      setIsRename(false);
-      // todo: reload
-      // reload("dir");
-    });
+    try {
+      setError(null);
+      setLoading(true);
+
+      // Validasi nama file
+      validateFileName(renameValue);
+
+      await libClient.fileRename(renameValue, file.id, () => {
+        setIsRename(false);
+        reloadDir();
+      });
+      
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal mengubah nama file";
+      setError(message);
+      clientLogger.error("Error renaming file:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const onDelete = async () => {
-    libClient.fileDelete(file.id, () => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const confirmed = window.confirm("Apakah Anda yakin ingin menghapus file ini?");
+      if (!confirmed) return;
+
+      await libClient.fileDelete(file.id, () => {
+        setContextMenu("");
+        alert("File berhasil dihapus");
+      });
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal menghapus file";
+      setError(message);
+      clientLogger.error("Error deleting file:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onCopy = async () => {
+    try {
+      setError(null);
+      const host = window.location.origin;
+      const url = host + apies["/api/files/[id]"]({ id: file.id });
+      
+      await navigator.clipboard.writeText(url);
       setContextMenu("");
-      // todo: reload
-      // reload("dir");
-      alert("deleted");
-      clientLogger.info("deleted");
-    });
+      alert("URL file berhasil disalin");
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal menyalin URL file";
+      setError(message);
+      clientLogger.error("Error copying URL:", error);
+    }
   };
 
-  const onCopy = () => {
-    const host = window.location.origin;
-    window.navigator.clipboard.writeText(
-      host + apies["/api/files/[id]"]({ id: file.id })
-    );
-    setContextMenu("");
-    // set({ type: "success", msg: "copied" });
-    alert("copied");
-    clientLogger.info("copied");
-  };
-
-  const onDownload = () => {
-    const fileUrl = "https://example.com/file.pdf"; // Ganti dengan URL file yang ingin diunduh
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = "file.pdf"; // Nama file yang akan diunduh
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // const onDownload = () => {
+  //   const fileUrl = "https://example.com/file.pdf"; // Ganti dengan URL file yang ingin diunduh
+  //   const link = document.createElement("a");
+  //   link.href = fileUrl;
+  //   link.download = "file.pdf"; // Nama file yang akan diunduh
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
   return (
     <Stack>
-      {/* {JSON.stringify(file)} */}
+      {error && (
+        <Alert color="red" title="Error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
       <Menu opened={contextMenu === file.id}>
         <Menu.Target>
           <Paper
+            ref={ref}
             pos={"relative"}
             w={width}
             key={file.id}
             onContextMenu={onContextMenu}
             onClick={() => onClick(file.id)}
             onDoubleClick={() => onDoubleClick(file.id)}
+            style={{
+              border: isSelected ? '2px solid var(--mantine-color-blue-5)' : 'none',
+              transition: 'border 0.15s ease'
+            }}
           >
             <Stack gap={"xs"} align={"center"} justify={"end"}>
               <Box
@@ -144,17 +302,32 @@ export function FileItem({
                 {selectedId === file.id && isRename ? (
                   <TextInput
                     ml={2}
-                    onKeyDown={(e) => e.key === "Enter" && onRename()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onRename();
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setIsRename(false);
+                        setRenameValue(file.name);
+                      }
+                    }}
                     size="xs"
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.currentTarget.value)}
-                    autoFocus // Ensure the input gains focus
+                    onBlur={() => {
+                      // Batalkan rename jika user click di luar
+                      setIsRename(false);
+                      setRenameValue(file.name);
+                    }}
+                    autoFocus
                   />
                 ) : (
                   <Text
                     style={{
                       wordBreak: "break-word",
-                      lineBreak: "anywhere"
+                      lineBreak: "anywhere",
+                      cursor: "text" // Tambahkan cursor text untuk indikasi bisa diedit
                     }}
                     pos={"relative"}
                     c="white"
@@ -167,6 +340,19 @@ export function FileItem({
                 )}
               </Box>
             </Stack>
+
+            {loading && (
+              <Center 
+                pos="absolute"
+                top={0}
+                left={0}
+                right={0}
+                bottom={0}
+                bg="rgba(0,0,0,0.5)"
+              >
+                <Loader size="sm" />
+              </Center>
+            )}
           </Paper>
         </Menu.Target>
         <Menu.Dropdown>
@@ -198,11 +384,27 @@ export function FileItem({
           >
             Download
           </Menu.Item>
+
+          {/* Tambahkan menu delete many */}
+          {selectedItemsCount && selectedItemsCount > 0 && (
+            <>
+              <Menu.Divider />
+              <Menu.Item
+                onClick={onDeleteSelected}
+                leftSection={<MdDelete size={14} />}
+                color="red"
+              >
+                Delete Selected ({selectedItemsCount})
+              </Menu.Item>
+            </>
+          )}
         </Menu.Dropdown>
       </Menu>
     </Stack>
   );
-}
+});
+
+FileItem.displayName = 'FileItem';
 
 function DisplayImage({ file }: { file: Record<string, any> }) {
   const [loading, setLoading] = useState(true);

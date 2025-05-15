@@ -2,7 +2,7 @@ import { filePathGenerate, listMimeTypes, verifyUserToken } from "@/lib/lib_serv
 import prisma from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
-const root = path.join(process.cwd(), "uploads");
+const uploadPath = process.env.UPLOAD_PATH!;  
 
 // Batas ukuran file dalam byte (100 MB)
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
@@ -47,30 +47,6 @@ export const POST = (req: Request) =>
           });
         }
 
-        // const createdAt = moment().format("YYYY-MM-DD-HH-mm");
-        // const ext = path.extname(file.name);
-        // const baseFileName = _.kebabCase(path.basename(file.name, ext));
-        // let fileName = baseFileName + ext;
-        // let filePath = path.join(
-        //   root,
-        //   user.id,
-        //   createdAt.replace(/-/g, "/"),
-        //   fileName
-        // );
-
-        // // Periksa jika nama file sudah ada, tambahkan penanda unik
-        // let counter = 1;
-        // while (await fileExists(filePath)) {
-        //   fileName = `${baseFileName}-${counter}${ext}`;
-        //   filePath = path.join(
-        //     root,
-        //     user.id,
-        //     createdAt.replace(/-/g, "/"),
-        //     fileName
-        //   );
-        //   counter++;
-        // }
-
         const pathGenerate = await filePathGenerate(user.id, file.name);
 
         // Buat entri file di database
@@ -94,7 +70,7 @@ export const POST = (req: Request) =>
         const buffer = Buffer.from(await file.arrayBuffer());
 
         // Tulis file ke system
-        await fs.writeFile(pathGenerate.fullPath, buffer);
+        await fs.writeFile(pathGenerate.fullPath, buffer as any);
 
         listDataUpload.push(uploadFile);
       }
